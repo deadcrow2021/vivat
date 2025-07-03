@@ -6,6 +6,8 @@ from pydantic_settings import BaseSettings as _BaseSettings
 from pydantic_settings import SettingsConfigDict
 from sqlalchemy import URL
 
+from dotenv import load_dotenv
+load_dotenv()
 
 class BaseSettings(_BaseSettings):
     model_config = SettingsConfigDict(
@@ -45,3 +47,15 @@ class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
             port=self.port,
             database=self.db,
         ).render_as_string(hide_password=False)
+
+
+class Config(BaseModel):
+    app: AppConfig
+    postgres: PostgresConfig
+
+
+def create_config() -> Config:
+    return Config(
+        app=AppConfig(),
+        postgres=PostgresConfig(),
+    )

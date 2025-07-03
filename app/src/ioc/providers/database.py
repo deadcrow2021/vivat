@@ -3,16 +3,16 @@ from collections.abc import AsyncIterable
 from dishka import Provider, provide, Scope
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
-from application.interfaces.transaction_manager import ITransactionManager
-from infrastructure.drivers.db.database import create_engine
+from src.application.interfaces.transaction_manager import ITransactionManager
+from src.infrastructure.drivers.db.database import create_engine
 from src.infrastructure.drivers.db.transaction_manager import TransactionManager
-from src.config import PostgresConfig
+from src.config import Config
 
 
 class DatabaseProvider(Provider):
     @provide(scope=Scope.APP)
-    def provide_engine(self, config: PostgresConfig) -> AsyncEngine:
-        return create_engine(config)
+    def provide_engine(self, config: Config) -> AsyncEngine:
+        return create_engine(config.postgres)
 
 
     @provide(scope=Scope.APP)
