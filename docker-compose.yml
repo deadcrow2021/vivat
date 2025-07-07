@@ -1,0 +1,31 @@
+services:
+
+  db:
+    image: postgres:17.5
+    container_name: db
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-volume:/var/lib/postgresql
+    env_file:
+      - .env
+
+  backend:
+    build:
+      context: .
+    container_name: backend
+    restart: always
+    working_dir: /server
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      - ./app/:/server
+    # command: ["python3", "./main.py"]
+
+volumes:
+  db-volume:

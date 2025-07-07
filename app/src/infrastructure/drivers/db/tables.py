@@ -1,11 +1,12 @@
-from datetime import datetime
+from datetime import datetime, time
+from typing import Optional
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Table, Boolean, DateTime, Numeric, SmallInteger
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, Boolean, DateTime, Numeric, SmallInteger, Time
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.sql import func
 from sqlalchemy_utils import PhoneNumberType, EmailType
 
-from src.infrastructure.drivers.db.tables.base import Base
+from src.infrastructure.drivers.db.base import Base
 
 
 # Для добавленных ингредиентов
@@ -43,15 +44,58 @@ category_food_association = Table(
     Column('food_id', Integer, ForeignKey('food.id'))
 )
 
+
+restaurant_feature_association = Table(
+    'restaurant_feature', Base.metadata,
+    Column('restaurant_id', Integer, ForeignKey('restaurant.id')),
+    Column('feature_id', Integer, ForeignKey('features.id'))
+)
+
+
+class Feature(Base):
+    __tablename__ = 'feature'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    icon_url: Mapped[str] = mapped_column(String(2000), nullable=False)
+    restaurant: Mapped[list['Restaurant']] = relationship('Restaurant', secondary=restaurant_feature_association, back_populates='features')
+
+
+class WorkingHours(Base):
+    __tablename__ = 'working_hours'
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    restaurant_id: Mapped[int] = mapped_column(ForeignKey('restaurant.id'))
+    day_of_week: Mapped[int] = mapped_column(SmallInteger)  # 0-6 (пн-вс)
+    # Основное время работы
+    opens_at: Mapped[time] = mapped_column(Time)
+    closes_at: Mapped[time] = mapped_column(Time)
+    # Для перерыва
+    break_start: Mapped[Optional[time]] = mapped_column(Time, nullable=True)
+    break_end: Mapped[Optional[time]] = mapped_column(Time, nullable=True)
+    # Связи
+    restaurant: Mapped['Restaurant'] = relationship('Restaurant', back_populates='working_hours')
+
+
 class Restaurant(Base):
     __tablename__ = 'restaurant'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(500), nullable=False)
+    phone: Mapped[str] = mapped_column(PhoneNumberType(region='RU'), unique=False)
     address: Mapped[str] = mapped_column(String(length=5000), nullable=False)
+
+    latitude: Mapped[Optional[float]] = mapped_column(Numeric(9, 6), nullable=True)  # Широта
+    longitude: Mapped[Optional[float]] = mapped_column(Numeric(9, 6), nullable=True)  # Долгота
+    
+    has_delivery: Mapped[bool] = mapped_column(Boolean, default=False) # Есть ли доставка
+    has_takeaway: Mapped[bool] = mapped_column(Boolean, default=False) # Есть ли самовывоз
+    has_dine_in: Mapped[bool] = mapped_column(Boolean, default=False) # Есть ли еда на месте
+
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     categories: Mapped[list['MenuCategory']] = relationship('MenuCategory', back_populates='restaurant')  # FK
     orders: Mapped[list['Order']] = relationship('Order', back_populates='restaurant')  # FK
+    working_hours: Mapped[list['WorkingHours']] = relationship('WorkingHours', back_populates='restaurant')  # FK
+    features: Mapped[list['Feature']] = relationship('Features', secondary=restaurant_feature_association, back_populates='restaurant') # M2M
 
 
 class MenuCategory(Base):
@@ -69,11 +113,14 @@ class MenuCategory(Base):
 class Food(Base):
     __tablename__ = 'food'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(500), nullable=False)
+    name: Mapped[str] = mapped_column(String(500), nullable=False) # Полное название
+    # Подназвание. Для селектора на UI (30см, 50см и т.д. / Маленькая, Большая и т.д. / 300г, 500г и т.д.) 
+    sub_name: Mapped[str] = mapped_column(String(200), nullable=True)
+    image_url: Mapped[str] = mapped_column(String(2000), nullable=True)
     description: Mapped[str] = mapped_column(String(5000), nullable=True)
-    food_type: Mapped[str] = mapped_column(String(200), nullable=True)
+    food_type: Mapped[str] = mapped_column(String(200), nullable=True) # Объединение блюда в один тип для селектора на UI
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    ingredient_price_modifier: Mapped[float] = mapped_column(Numeric(2, 4), default=1.0)
+    ingredient_price_modifier: Mapped[float] = mapped_column(Numeric(10, 4), default=1.0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Связи
@@ -136,7 +183,7 @@ class Order(Base):
 
 
 class OrderItem(Base):
-    __tablename__ = 'order'
+    __tablename__ = 'order_item'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     food_id: Mapped[int] = mapped_column(Integer, ForeignKey('food.id')) # One2One
     order_id: Mapped[int] = mapped_column(Integer, ForeignKey('order.id'))
