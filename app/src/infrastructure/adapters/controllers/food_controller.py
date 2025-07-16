@@ -3,7 +3,7 @@ from dishka.integrations.fastapi import inject
 from fastapi import APIRouter
 from starlette import status
 
-from app.src.application.interfaces.interactors.food import GetFoodInteractor
+from src.application.interfaces.interactors.food_interactor import GetFoodInteractor
 
 
 router = APIRouter(prefix="/food", tags=["auth"])
@@ -20,4 +20,4 @@ async def get_food(
     id: int,
     get_food: FromDishka[GetFoodInteractor]
 ):
-    return {'id': id}
+    return await get_food(id)

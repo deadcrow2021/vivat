@@ -23,12 +23,12 @@ order_item_removed_ingredient = Table(
     Column('removed_id', Integer, ForeignKey('ingredient.id'))
 )
 
-# # Связь многие-ко-многим для категорий ресторана
-# restaurant_category_association = Table(
-#     'restaurant_category', Base.metadata,
-#     Column('restaurant_id', Integer, ForeignKey('restaurant.id')),
-#     Column('category_id', Integer, ForeignKey('menu_category.id'))
-# )
+# Связь многие-ко-многим для категорий ресторана
+restaurant_category_association = Table(
+    'restaurant_category', Base.metadata,
+    Column('restaurant_id', Integer, ForeignKey('restaurant.id')),
+    Column('category_id', Integer, ForeignKey('menu_category.id'))
+)
 
 # Связь многие-ко-многим для любимых блюд
 user_favorite_association = Table(
@@ -37,19 +37,34 @@ user_favorite_association = Table(
     Column('food_id', Integer, ForeignKey('food.id'))
 )
 
+restaurant_feature_association = Table(
+    'restaurant_feature', Base.metadata,
+    Column('restaurant_id', Integer, ForeignKey('restaurant.id')),
+    Column('feature_id', Integer, ForeignKey('feature.id'))
+)
 
-category_food_association = Table(
-    'category_food', Base.metadata,
-    Column('category_id', Integer, ForeignKey('menu_category.id')),
+# Таблица для отключения блюд
+restaurant_food_disabled = Table(
+    'restaurant_food_disabled', Base.metadata,
+    Column('restaurant_id', Integer, ForeignKey('restaurant.id')),
     Column('food_id', Integer, ForeignKey('food.id'))
 )
 
 
-restaurant_feature_association = Table(
-    'restaurant_feature', Base.metadata,
-    Column('restaurant_id', Integer, ForeignKey('restaurant.id')),
-    Column('feature_id', Integer, ForeignKey('features.id'))
+food_characteristic_variant_association = Table(
+    'food_characteristic_variant', Base.metadata,
+    Column('characteristic_id', Integer, ForeignKey('food_characteristic.id')),
+    Column('variant_id', Integer, ForeignKey('food_variant.id'))
 )
+
+
+class City(Base):
+    __tablename__ = 'city'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    restaurants: Mapped[list['Restaurant']] = relationship('Restaurant', back_populates='city')
+    latitude: Mapped[Optional[float]] = mapped_column(Numeric(9, 6), nullable=True)  # Широта
+    longitude: Mapped[Optional[float]] = mapped_column(Numeric(9, 6), nullable=True)  # Долгота
 
 
 class Feature(Base):
@@ -79,6 +94,7 @@ class WorkingHours(Base):
 class Restaurant(Base):
     __tablename__ = 'restaurant'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    city_id: Mapped[int] = mapped_column(ForeignKey('city.id'))
     name: Mapped[str] = mapped_column(String(500), nullable=False)
     phone: Mapped[str] = mapped_column(PhoneNumberType(region='RU'), unique=False)
     address: Mapped[str] = mapped_column(String(length=5000), nullable=False)
@@ -92,10 +108,15 @@ class Restaurant(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    categories: Mapped[list['MenuCategory']] = relationship('MenuCategory', back_populates='restaurant')  # FK
+    # Связи
+    city : Mapped['City'] = relationship('City', back_populates='restaurants')
+    # FK
     orders: Mapped[list['Order']] = relationship('Order', back_populates='restaurant')  # FK
     working_hours: Mapped[list['WorkingHours']] = relationship('WorkingHours', back_populates='restaurant')  # FK
-    features: Mapped[list['Feature']] = relationship('Features', secondary=restaurant_feature_association, back_populates='restaurant') # M2M
+    # M2M
+    categories: Mapped[list['MenuCategory']] = relationship('MenuCategory', secondary=restaurant_category_association, back_populates='restaurants')
+    features: Mapped[list['Feature']] = relationship('Features', secondary=restaurant_feature_association, back_populates='restaurants')
+    disabled_foods: Mapped[list['Food']] = relationship(secondary=restaurant_food_disabled, back_populates='disabled_in_restaurants')
 
 
 class MenuCategory(Base):
@@ -103,35 +124,51 @@ class MenuCategory(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(500), nullable=False)  # 'Пицца', 'Напитки' и т.д.
     display_order: Mapped[int] = mapped_column(SmallInteger)  # Порядок отображения в меню
-    restaurant_id: Mapped[int] = mapped_column(Integer, ForeignKey('restaurant.id'))
 
     # Связи
-    restaurant: Mapped['Restaurant'] = relationship('Restaurant', back_populates='categories')
-    foods: Mapped[list['Food']] = relationship('Food', secondary=category_food_association, back_populates='categories')
+    restaurant: Mapped[list['Restaurant']] = relationship('Restaurant', secondary=restaurant_category_association, back_populates='categories')
+    foods: Mapped[list['Food']] = relationship('Food', back_populates='menu_category')  # FK
+
+
+class FoodCharacteristic(Base):
+    __tablename__ = 'food_characteristic'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    measure_value: Mapped[str] = mapped_column(String(200), nullable=True) # Подназвание. Для селектора
+                        # на UI (30, 50 (см) и т.д. / Маленькая, Большая и т.д. / 300, 500 (г) и т.д.)
+    measure_name: Mapped[str] = mapped_column(String(50), nullable=True) # Единица измерения (см, г, мл, шт и т.д.)
+
+
+class FoodVariant(Base):
+    __tablename__ = 'food_variant'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    food_id: Mapped[int] = mapped_column(ForeignKey('food.id'))
+    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    ingredient_price_modifier: Mapped[float] = mapped_column(Numeric(10, 4), default=1.0)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    food: Mapped['Food'] = relationship(back_populates='variants')
 
 
 class Food(Base):
     __tablename__ = 'food'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    category_id: Mapped[int] = mapped_column(ForeignKey('menu_category.id'))
     name: Mapped[str] = mapped_column(String(500), nullable=False) # Полное название
-    # Подназвание. Для селектора на UI (30см, 50см и т.д. / Маленькая, Большая и т.д. / 300г, 500г и т.д.) 
-    sub_name: Mapped[str] = mapped_column(String(200), nullable=True)
     image_url: Mapped[str] = mapped_column(String(2000), nullable=True)
     description: Mapped[str] = mapped_column(String(5000), nullable=True)
-    food_type: Mapped[str] = mapped_column(String(200), nullable=True) # Объединение блюда в один тип для селектора на UI
-    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    ingredient_price_modifier: Mapped[float] = mapped_column(Numeric(10, 4), default=1.0)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    # Связи
-    order_item: Mapped['OrderItem'] = relationship('OrderItem', back_populates='food') # One2One
-    category: Mapped[list['MenuCategory']] = relationship('MenuCategory', secondary=category_food_association, back_populates='foods')
+    # FK
+    variants: Mapped[list['FoodVariant']] = relationship('FoodVariant', back_populates='food')
+    category: Mapped['MenuCategory'] = relationship('MenuCategory', back_populates='category')
+    # One2One
+    order_item: Mapped['OrderItem'] = relationship('OrderItem', back_populates='food') 
+    # M2M
+    user: Mapped[list['User']] = relationship('User', secondary=user_favorite_association, back_populates='favorites')
+    disabled_in_restaurants: Mapped[list['Restaurant']] = relationship(secondary=restaurant_food_disabled, back_populates='disabled_foods')
     ingredient_associations: Mapped[list['FoodIngredientAssociation']] = relationship(
         back_populates='food',
         cascade='save-update, merge, expunge, delete, delete-orphan',
         passive_deletes=True
     )
-    user: Mapped[list['User']] = relationship('User', secondary=user_favorite_association, back_populates='favorites')
 
 
 class FoodIngredientAssociation(Base):
@@ -219,7 +256,7 @@ class UserAddress(Base):
     floor: Mapped[int] = mapped_column(SmallInteger)
     apartment: Mapped[str] = mapped_column(String(20))
     is_primary: Mapped[bool] = mapped_column(Boolean, default=True)
-    
+
     # Связи
     user: Mapped['User'] = relationship('User', back_populates='addresses')
     orders: Mapped[list['Order']] = relationship('Order', back_populates='address')

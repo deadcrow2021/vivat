@@ -7,11 +7,11 @@ from dishka import AsyncContainer
 
 from src.ioc.ioc_main import create_container
 from src.config import Config, create_config
-from app.src.infrastructure.adapters.controllers import food
+from src.infrastructure.adapters.controllers import food_controller
 
 
 def setup_routers(app: FastAPI) -> None:
-    app.include_router(food.router)
+    app.include_router(food_controller.router)
 
 
 def setup_middlewares(app: FastAPI, config: Config) -> None:
