@@ -32,7 +32,7 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-config.set_main_option('sqlalchemy.url', create_config().postgres.build_dsn())
+config.set_main_option("sqlalchemy.url", create_config().postgres.build_dsn())
 
 
 def run_migrations_offline() -> None:
@@ -74,7 +74,7 @@ async def run_async_migrations() -> None:
 
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
-        prefix='sqlalchemy.',
+        prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 

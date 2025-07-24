@@ -9,5 +9,5 @@ class FoodRepository(IFoodRepository):
         self._session = session
 
     async def get_by_id(self, food_id: int):
-        return {'id': 123}
+        return {"id": 123}
         # return await self._session.get(User, user_id)

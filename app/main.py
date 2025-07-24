@@ -1,17 +1,24 @@
+import asyncio
+import sys
+
 import uvicorn
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dishka.integrations.fastapi import setup_dishka
 from dishka import AsyncContainer
 
+from src.exceptions import register_exception_handlers
 from src.ioc.ioc_main import create_container
 from src.config import Config, create_config
-from src.infrastructure.adapters.controllers import food_controller
+from src.infrastructure.adapters.controllers import (
+    food_controller,
+    restaurant_controller,
+)
 
 
 def setup_routers(app: FastAPI) -> None:
-    app.include_router(food_controller.router)
+    app.include_router(food_controller.router, tags=["Food"])
+    app.include_router(restaurant_controller.router, tags=["Restaurant"])
 
 
 def setup_middlewares(app: FastAPI, config: Config) -> None:
@@ -40,15 +47,12 @@ def create_application() -> FastAPI:
     setup_dishka(container, app)
     setup_routers(app)
     setup_middlewares(app, config)
-    # register_exception_handlers(app)
-
-    # map_tables()
+    register_exception_handlers(app)
 
     return app
 
-# @app.get("/", response_class=HTMLResponse)
-# async def get_main_page(request: Request):
-#     return 
 
 if __name__ == "__main__":
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     uvicorn.run(create_application(), host="0.0.0.0", port=8000)

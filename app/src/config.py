@@ -7,26 +7,26 @@ from pydantic_settings import SettingsConfigDict
 from sqlalchemy import URL
 
 from dotenv import load_dotenv
+
 load_dotenv()
+
 
 class BaseSettings(_BaseSettings):
     model_config = SettingsConfigDict(
-        extra="ignore",
-        env_file=".env",
-        env_file_encoding="utf-8"
+        extra="ignore", env_file=".env", env_file_encoding="utf-8"
     )
 
 
 class AppConfig(BaseSettings):
-    environment: str = Field(default=os.environ['ENVIRONMENT'])
-    log_level: str = Field(default=os.environ['LOG_LEVEL'])
+    environment: str = Field(default=os.environ["ENVIRONMENT"])
+    log_level: str = Field(default=os.environ["LOG_LEVEL"])
 
-    @field_validator('log_level')
+    @field_validator("log_level")
     @classmethod
     def validate_log_level(cls, value: str):
         level = getattr(logging, value.upper(), None)
         if not isinstance(level, int):
-            raise ValueError(f'Invalid log level: {value}')
+            raise ValueError(f"Invalid log level: {value}")
         return level
 
 

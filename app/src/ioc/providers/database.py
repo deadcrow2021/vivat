@@ -14,13 +14,13 @@ class DatabaseProvider(Provider):
     def provide_engine(self, config: Config) -> AsyncEngine:
         return create_engine(config.postgres)
 
-
     @provide(scope=Scope.APP)
     async def provide_sessionmaker(
         self, engine: AsyncEngine
     ) -> async_sessionmaker[AsyncSession]:
-        return async_sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
-
+        return async_sessionmaker(
+            bind=engine, autoflush=False, autocommit=False, expire_on_commit=False
+        )
 
     @provide(scope=Scope.REQUEST, provides=AsyncSession)
     async def provide_session(
@@ -29,9 +29,6 @@ class DatabaseProvider(Provider):
         async with sessionmaker() as session:
             yield session
 
-
     transaction_manager = provide(
-        source=TransactionManager,
-        provides=ITransactionManager,
-        scope=Scope.REQUEST
+        source=TransactionManager, provides=ITransactionManager, scope=Scope.REQUEST
     )
