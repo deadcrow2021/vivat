@@ -1,0 +1,1 @@
+docker exec -it backend /bin/bash -c "alembic upgrade head"

@@ -2,6 +2,7 @@ import asyncio
 import random
 import sys
 from datetime import time
+import json
 
 from faker import Faker
 from dishka import FromDishka, AsyncContainer
@@ -31,7 +32,10 @@ fake = Faker("ru_RU")
 container: AsyncContainer = create_container()
 
 
-async def generate_test_data(session: AsyncSession, num_records: int = 10):
+async def generate_test_data(session: AsyncSession):
+    with open('./test_data_generator.json', 'r') as file:
+        json_data = json.loads(file.read())
+
     # 1. Генерация городов
     cities = [
         City(
@@ -39,20 +43,20 @@ async def generate_test_data(session: AsyncSession, num_records: int = 10):
             latitude=float(fake.latitude()),
             longitude=float(fake.longitude()),
         )
-        for _ in range(1)
+        for _ in range(json_data['city_num'])
     ]
     session.add_all(cities)
     await session.flush()  # Получаем ID
 
     # 2. Генерация фич
-    features = [Feature(name=fake.word(), icon_url=fake.image_url()) for _ in range(10)]
+    features = [Feature(name=fake.word(), icon_url=fake.image_url()) for _ in range(json_data['features_num'])]
     session.add_all(features)
 
     # 3. Генерация ресторанов
     restaurants: list[Restaurant] = []
 
     for city in cities:
-        for _ in range(num_records):
+        for _ in range(json_data['restaurants_per_city_num']):
             restaurant = Restaurant(
                 name=fake.company(),
                 phone=fake.phone_number(),
@@ -78,7 +82,7 @@ async def generate_test_data(session: AsyncSession, num_records: int = 10):
                 restaurant_id=restaurant.id,
                 day_of_week=day,
                 opens_at=time(9, 0),
-                closes_at=time(23, 0),
+                closes_at=time(22, 0),
             )
             working_hours.append(wh)
     session.add_all(working_hours)
@@ -231,7 +235,7 @@ if __name__ == "__main__":
             session = await request_container.get(AsyncSession)
 
             try:
-                await generate_test_data(session, num_records=5)
+                await generate_test_data(session)
                 await session.commit()
             except Exception:
                 await session.rollback()

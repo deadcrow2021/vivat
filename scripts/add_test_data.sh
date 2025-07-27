@@ -1,0 +1,1 @@
+docker exec -it backend /bin/bash -c "python3 /server/test_data_generator.py"

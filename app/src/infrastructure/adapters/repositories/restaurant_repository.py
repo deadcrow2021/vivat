@@ -1,4 +1,3 @@
-from datetime import datetime
 from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession

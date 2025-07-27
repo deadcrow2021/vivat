@@ -71,7 +71,7 @@ async def change_restaurant_by_id(
 
 
 @router.delete(
-    "/{city_id}",
+    "/{restaurant_id}",
     status_code=status.HTTP_200_OK,
     response_model=DeleteRestaurantResponse,
     responses={
