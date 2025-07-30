@@ -37,7 +37,7 @@ class RestaurantRepository(IRestaurantRepository):
         self._session = session
 
     async def get_restaurants_by_city_id(self, city_id: int) -> GetRestaurantsResponse:
-        get_city_query = select(City).where(City.id == city_id)
+        get_city_query = select(City).where(City.id == city_id) # TODO: вынести отдельно
         get_city_result = await self._session.execute(get_city_query)
         city = get_city_result.scalar()
 
@@ -105,7 +105,7 @@ class RestaurantRepository(IRestaurantRepository):
     async def change_restaurant_by_id(
         self, restaurant_id: int, update_restaurant: UpdateRestaurantRequest
     ) -> AddRestaurantResponse:
-        restaurant = await self._session.get(Restaurant, restaurant_id)
+        restaurant = await self._session.get(Restaurant, restaurant_id) # TODO: вынести отдельно
         if not restaurant:
             raise RestaurantNotFoundError
 
@@ -130,7 +130,7 @@ class RestaurantRepository(IRestaurantRepository):
     async def add_restaurant_to_city_by_id(
         self, city_id: int, restaurant: AddRestaurantRequest
     ) -> AddRestaurantResponse:
-        city = await self._session.get(City, city_id)
+        city = await self._session.get(City, city_id) # TODO: вынести отдельно
         if not city:
             raise CityNotFoundError(id=city_id)
 

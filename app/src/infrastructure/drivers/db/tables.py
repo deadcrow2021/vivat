@@ -121,6 +121,7 @@ class WorkingHours(Base):
     # Для перерыва
     break_start: Mapped[Optional[time]] = mapped_column(Time, nullable=True)
     break_end: Mapped[Optional[time]] = mapped_column(Time, nullable=True)
+    is_holiday: Mapped[bool] = mapped_column(Boolean, default=False, server_default='true')
     # Связи
     restaurant: Mapped["Restaurant"] = relationship(
         "Restaurant", back_populates="working_hours"

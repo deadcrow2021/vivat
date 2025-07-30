@@ -3,8 +3,12 @@ class InfrastructureError(Exception):
 
 
 class CityNotFoundError(InfrastructureError):
-    def __init__(self, id: int) -> None:
-        super().__init__(f"Cannot find city with id: {id}")
+    def __init__(self, id: int = None) -> None:
+        if id:
+            msg = f"Cannot find city with id: {id}"
+        else:
+            msg = "Cannot find any city"
+        super().__init__(msg)
 
 
 class RestaurantNotFoundError(InfrastructureError):
