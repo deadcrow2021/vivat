@@ -1,34 +1,45 @@
 from abc import abstractmethod
 from typing import Protocol
 
+from src.infrastructure.drivers.db.tables import City, Restaurant
 from src.domain.dto.restaurant_dto import (
     AddRestaurantRequest,
     AddRestaurantResponse,
     DeleteRestaurantResponse,
-    GetRestaurantsResponse,
+    GetCityRestaurantsResponse,
+    GetRestaurantResponse,
     UpdateRestaurantRequest,
+    UpdateRestaurantResponse,
 )
 
 
 class IRestaurantRepository(Protocol):
     @abstractmethod
-    async def get_restaurants_by_city_id(self, city_id: int) -> GetRestaurantsResponse:
+    async def get_restaurant_by_id(self, restaurant_id: int) -> Restaurant:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_city_restaurants(self, city: City) -> GetCityRestaurantsResponse:
         raise NotImplementedError
 
     @abstractmethod
     async def add_restaurant_to_city_by_id(
-        self, city_id: int, restaurant: AddRestaurantRequest
+        self,
+        city: City,
+        restaurant: AddRestaurantRequest
     ) -> AddRestaurantResponse:
         raise NotImplementedError
 
     @abstractmethod
-    async def change_restaurant_by_id(
-        self, restaurant_id: int, update_restaurant: UpdateRestaurantRequest
-    ) -> AddRestaurantResponse:
+    async def update_restaurant(
+        self,
+        restaurant: Restaurant,
+        update_restaurant: UpdateRestaurantRequest
+    ) -> UpdateRestaurantResponse:
         raise NotImplementedError
 
     @abstractmethod
-    async def delete_restaurant_by_id(
-        self, restaurant_id: int
+    async def delete_restaurant(
+        self, restaurant: Restaurant
     ) -> DeleteRestaurantResponse:
         raise NotImplementedError

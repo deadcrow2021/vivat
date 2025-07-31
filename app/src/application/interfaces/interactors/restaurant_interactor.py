@@ -2,52 +2,67 @@ from src.application.exceptions import IdNotValidError
 from src.domain.dto.restaurant_dto import (
     AddRestaurantRequest,
     DeleteRestaurantResponse,
-    GetRestaurantsResponse,
+    GetCityRestaurantsResponse,
+    GetRestaurantResponse,
     UpdateRestaurantRequest,
+    WorkingHoursModel,
 )
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import restaurant_repository
+from src.application.interfaces.repositories import city_repository
+from src.logger import logger
 
 
+# TODO: add exceptions
 class GetRestaurantInteractor:
     def __init__(
-        self, restaurant_repository: restaurant_repository.IRestaurantRepository
+        self,
+        restaurant_repository: restaurant_repository.IRestaurantRepository
     ):
         self._restaurant_repository = restaurant_repository
 
-    async def __call__(self, city_id: int) -> GetRestaurantsResponse:
-        if city_id < 1:
+    async def __call__(self, restaurant_id: int) -> GetRestaurantResponse:
+        if restaurant_id < 1:
             raise IdNotValidError
+        try:
+            restaurant = await self._restaurant_repository.get_restaurant_by_id(restaurant_id)
+            return GetRestaurantResponse(
+                id=restaurant.id,
+                name=restaurant.name,
+                phone=restaurant.phone.e164,
+                address=restaurant.address,
+                coords=[float(restaurant.latitude), float(restaurant.longitude)],
+                working_hours=WorkingHoursModel(root=self._restaurant_repository._get_working_hours(restaurant)),
+                features=self._restaurant_repository._get_features(restaurant),
+                actions=self._restaurant_repository._get_allowed_actions(restaurant),
+            )
+        except Exception as e:
+            logger.error(f"Get restaurant repository error: {e}")
+            raise
 
-        city: GetRestaurantsResponse = (
-            await self._restaurant_repository.get_restaurants_by_city_id(city_id)
-        )
 
-        return city
-
-
-class CreateRestaurantInteractor:
+class GetCityRestaurantsInteractor:
     def __init__(
         self,
-        restaurant_repository: restaurant_repository.IRestaurantRepository,
-        transaction_manager: ITransactionManager,
+        city_repository: city_repository.ICityRepository,
+        restaurant_repository: restaurant_repository.IRestaurantRepository
     ):
+        self._city_repository = city_repository
         self._restaurant_repository = restaurant_repository
-        self._transaction_manager = transaction_manager
 
-    async def __call__(self, city_id: int, restaurant: AddRestaurantRequest):
+    async def __call__(self, city_id: int) -> GetCityRestaurantsResponse:
         if city_id < 1:
             raise IdNotValidError
 
-        city = await self._restaurant_repository.add_restaurant_to_city_by_id(
-            city_id, restaurant
-        )
-        await self._transaction_manager.commit()
+        try:
+            city = await self._city_repository.get_city_by_id(city_id)
+            restaurants_response: GetCityRestaurantsResponse = await self._restaurant_repository.get_city_restaurants(city)
+            return restaurants_response
+        except Exception as e:
+            logger.error(f"Get city restaurants repository error: {e}")
+            raise
 
-        return city
-
-
-class ChangeRestaurantInteractor:
+class UpdateRestaurantInteractor:
     def __init__(
         self,
         restaurant_repository: restaurant_repository.IRestaurantRepository,
@@ -59,17 +74,43 @@ class ChangeRestaurantInteractor:
     async def __call__(
         self,
         restaurant_id: int,
-        restaurant: UpdateRestaurantRequest,
+        restaurant_request: UpdateRestaurantRequest,
     ) -> None:
         if restaurant_id < 1:
             raise IdNotValidError
 
-        restaurant = await self._restaurant_repository.change_restaurant_by_id(
-            restaurant_id, restaurant
+        restaurant = await self._restaurant_repository.get_restaurant_by_id(restaurant_id)
+        restaurant_response = await self._restaurant_repository.update_restaurant(
+            restaurant,
+            restaurant_request
         )
         await self._transaction_manager.commit()
 
-        return restaurant
+        return restaurant_response
+
+
+class CreateRestaurantInteractor:
+    def __init__(
+        self,
+        city_repository: city_repository.ICityRepository,
+        restaurant_repository: restaurant_repository.IRestaurantRepository,
+        transaction_manager: ITransactionManager,
+    ):
+        self._city_repository = city_repository
+        self._restaurant_repository = restaurant_repository
+        self._transaction_manager = transaction_manager
+
+    async def __call__(self, city_id: int, restaurant_request: AddRestaurantRequest):
+        if city_id < 1:
+            raise IdNotValidError
+
+        city = await self._city_repository.get_city_by_id(city_id)
+        add_restaurant_response = await self._restaurant_repository.add_restaurant_to_city_by_id(
+            city, restaurant_request
+        )
+        await self._transaction_manager.commit()
+
+        return add_restaurant_response
 
 
 class DeleteRestaurantInteractor:
@@ -85,9 +126,8 @@ class DeleteRestaurantInteractor:
         if restaurant_id < 1:
             raise IdNotValidError
 
-        restaurant = await self._restaurant_repository.delete_restaurant_by_id(
-            restaurant_id
-        )
+        restaurant = await self._restaurant_repository.get_restaurant_by_id(restaurant_id)
+        restaurant_response = await self._restaurant_repository.delete_restaurant(restaurant)
         await self._transaction_manager.commit()
 
-        return restaurant
+        return restaurant_response

@@ -1,20 +1,23 @@
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from starlette import status
 
+from src.logger import logger
 from src.domain.dto.restaurant_dto import (
     AddRestaurantRequest,
     AddRestaurantResponse,
     DeleteRestaurantResponse,
-    GetRestaurantsResponse,
+    GetCityRestaurantsResponse,
+    GetRestaurantResponse,
     UpdateRestaurantRequest,
 )
 from src.application.interfaces.interactors.restaurant_interactor import (
-    ChangeRestaurantInteractor,
+    UpdateRestaurantInteractor,
     DeleteRestaurantInteractor,
-    GetRestaurantInteractor,
+    GetCityRestaurantsInteractor,
     CreateRestaurantInteractor,
+    GetRestaurantInteractor,
 )
 
 
@@ -22,18 +25,43 @@ router = APIRouter(prefix="/restaurant", tags=["Restaurant"])
 
 
 @router.get(
-    "/{city_id}",
+    "/{restaurant_id}",
     status_code=status.HTTP_200_OK,
-    response_model=GetRestaurantsResponse,
+    response_model=GetRestaurantResponse,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"error": "Restaurant not found."},
+    },
+)
+@inject
+async def get_restaurant_by_id(
+    restaurant_id: int,
+    get_restaurant: FromDishka[GetRestaurantInteractor]
+):
+    try:
+        return await get_restaurant(restaurant_id)
+    except Exception as e:
+        logger.exception(f"Get restaurant controller error. Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail=f'Unexpected Get restaurant controller error: {e}')
+
+
+@router.get(
+    "/city/{city_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=GetCityRestaurantsResponse,
     responses={
         status.HTTP_404_NOT_FOUND: {"error": "Restaurants not found."},
     },
 )
 @inject
 async def get_restaurant_by_city_id(
-    city_id: int, get_restaurants: FromDishka[GetRestaurantInteractor]
+    city_id: int,
+    get_city_restaurants: FromDishka[GetCityRestaurantsInteractor]
 ):
-    return await get_restaurants(city_id)
+    try:
+        return await get_city_restaurants(city_id)
+    except Exception as e:
+        logger.exception(f"Get city restaurants controller error. Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail=f'Unexpected Get city restaurants controller error: {e}')
 
 
 @router.post(
@@ -62,10 +90,10 @@ async def create_restaurant_by_city_id(
     },
 )
 @inject
-async def change_restaurant_by_id(
+async def update_restaurant_by_id(
     restaurant_id: int,
     restaurant: UpdateRestaurantRequest,
-    change_restaurant: FromDishka[ChangeRestaurantInteractor],
+    change_restaurant: FromDishka[UpdateRestaurantInteractor],
 ):
     return await change_restaurant(restaurant_id, restaurant)
 

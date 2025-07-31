@@ -11,7 +11,7 @@ from src.application.interfaces.repositories.city_repository import (
 from src.infrastructure.drivers.db.tables import City
 
 
-class CityRepository(ICityRepository):
+class CityRepository(ICityRepository): # TODO: add exceptions
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

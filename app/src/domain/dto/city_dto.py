@@ -1,8 +1,6 @@
-from enum import Enum
-import re
-from typing import Dict, List, Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, Field, RootModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class BaseCityRequest(BaseModel):
@@ -38,6 +36,7 @@ class BaseCityRequest(BaseModel):
 
 
 class BaseCityResponse(BaseModel):
+    id: int
     name: str
     coordiantes: List[float]
 

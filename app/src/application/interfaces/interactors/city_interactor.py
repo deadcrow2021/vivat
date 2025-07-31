@@ -3,7 +3,7 @@ from src.application.exceptions import IdNotValidError
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import city_repository
 
-
+# TODO: add exceptions
 class GetAllCitiesInteractor:
     def __init__(
         self, city_repository: city_repository.ICityRepository
@@ -17,6 +17,7 @@ class GetAllCitiesInteractor:
         )
         data = [
                 GetCityResponse(
+                    id=c.id,
                     name=c.name,
                     coordiantes=[float(c.latitude), float(c.longitude)]
                 )
@@ -38,6 +39,7 @@ class GetCityInteractor:
         city = await self._city_repository.get_city_by_id(city_id)
         
         return GetCityResponse(
+            id=city.id,
             name=city.name,
             coordiantes=[float(city.latitude), float(city.longitude)]
         )
@@ -56,6 +58,7 @@ class AddCityInteractor:
         await self._transaction_manager.commit()
 
         return AddCityResponse(
+            id=city.id,
             name=city.name,
             coordiantes=[float(city.latitude), float(city.longitude)]
         )
@@ -78,6 +81,7 @@ class UpdateCityInteractor:
         await self._transaction_manager.commit()
 
         return UpdateCityResponse(
+            id=updated_city.id,
             name=updated_city.name,
             coordiantes=[float(updated_city.latitude), float(updated_city.longitude)]
         )

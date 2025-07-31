@@ -66,8 +66,17 @@ class BaseRestaurantRequest(BaseModel):
         return v
 
 
-### GET RESTAURANTS
+class BaseRestaurantResponse(BaseModel):
+    id: Optional[int] = None
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    coords: Optional[List[float]] = None
+    actions: Optional[List[RestaurantActionEnum]] = None
+    is_active: Optional[bool] = None
 
+
+### GET RESTAURANTS
 
 class DayShortName(str, Enum):
     MONDAY = "пн"
@@ -93,6 +102,7 @@ class WorkingHoursModel(RootModel):
 
 class RestaurantItem(BaseModel):
     id: int
+    name: str
     address: str
     phone: str
     coords: List[float]
@@ -106,15 +116,18 @@ class RestaurantData(BaseModel):
     center_coords: List[float]
 
 
-class GetRestaurantsResponse(BaseModel):
+class GetCityRestaurantsResponse(BaseModel):
     data: Optional[RestaurantData] = None
 
     class Config:
         exclude_none = True
 
 
-### ADD RESTAURANT
+class GetRestaurantResponse(RestaurantItem):
+    pass
 
+
+### ADD RESTAURANT
 
 class AddRestaurantRequest(BaseRestaurantRequest):
     name: str = Field(..., max_length=500)
@@ -128,20 +141,16 @@ class AddRestaurantRequest(BaseRestaurantRequest):
     is_active: bool = Field(True)
 
 
-class AddRestaurantResponse(BaseModel):
-    id: int
-    name: str
-    phone: str
-    address: str
-    coords: List[float]
-    actions: List[RestaurantActionEnum]
-    is_active: bool
+class AddRestaurantResponse(BaseRestaurantResponse):
+    pass
 
 
 # Update restaurant
 
-
 class UpdateRestaurantRequest(BaseRestaurantRequest):
+    pass
+
+class UpdateRestaurantResponse(BaseRestaurantResponse):
     pass
 
 
