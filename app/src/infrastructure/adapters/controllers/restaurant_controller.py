@@ -23,7 +23,7 @@ from src.application.interfaces.interactors.restaurant_interactor import (
 
 router = APIRouter(prefix="/restaurant", tags=["Restaurant"])
 
-
+# TODO: add exceptions
 @router.get(
     "/{restaurant_id}",
     status_code=status.HTTP_200_OK,

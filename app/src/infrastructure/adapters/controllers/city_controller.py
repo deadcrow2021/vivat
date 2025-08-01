@@ -10,7 +10,7 @@ from src.domain.dto.city_dto import AddCityRequest, AddCityResponse, DeleteCityR
 
 router = APIRouter(prefix="/city", tags=["City"])
 
-
+# TODO: add exceptions
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,

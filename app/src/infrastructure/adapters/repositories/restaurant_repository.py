@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import List
 from sqlalchemy import select, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
@@ -8,7 +10,7 @@ from src.infrastructure.exceptions import CityNotFoundError, RestaurantNotFoundE
 from src.application.interfaces.repositories.restaurant_repository import (
     IRestaurantRepository,
 )
-from src.infrastructure.drivers.db.tables import City, Restaurant
+from src.infrastructure.drivers.db.tables import City, Feature, Restaurant, WorkingHours
 from src.domain.dto.restaurant_dto import (
     AddRestaurantRequest,
     AddRestaurantResponse,
@@ -114,7 +116,44 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions
         # Обновляем только переданные поля
         update_dict = update_restaurant.model_dump(exclude_unset=True)
         for key, value in update_dict.items():
-            setattr(restaurant, key, value)
+            if key not in ["working_hours", "features"]:
+                setattr(restaurant, key, value)
+
+        # Обновляем часы работы, если они переданы
+        if update_restaurant.working_hours is not None:
+            # Создаем словарь существующих часов работы для быстрого доступа
+            existing_hours = {wh.day_of_week: wh for wh in restaurant.working_hours}
+            
+            for day, hours in update_restaurant.working_hours.root.items():
+                day_of_week = next(k for k, v in self.DAY_MAP.items() if v == day)
+                
+                # Если часы для этого дня уже существуют - обновляем
+                if day_of_week in existing_hours:
+                    wh = existing_hours[day_of_week]
+                    wh.opens_at = datetime.strptime(hours.from_, "%H:%M").time()
+                    wh.closes_at = datetime.strptime(hours.to, "%H:%M").time()
+                    wh.is_holiday = hours.is_holiday
+                else:
+                    # Иначе создаем новые
+                    new_wh = WorkingHours(
+                        restaurant_id=restaurant.id,
+                        day_of_week=day_of_week,
+                        opens_at=datetime.strptime(hours.from_, "%H:%M").time(),
+                        closes_at=datetime.strptime(hours.to, "%H:%M").time(),
+                        is_holiday=hours.is_holiday
+                    )
+                    self._session.add(new_wh)
+
+        # Обновляем фичи, если они переданы
+        if update_restaurant.features is not None:
+            # Очищаем текущие фичи
+            restaurant.features.clear()
+
+            # Находим и добавляем новые фичи
+            stmt = select(Feature).where(Feature.name.in_(update_restaurant.features))
+            result = await self._session.execute(stmt)
+            features = result.scalars().all()
+            restaurant.features.extend(features)
 
         await self._session.flush()
 
@@ -125,8 +164,10 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions
             phone=restaurant.phone.e164,
             address=restaurant.address,
             coords=[restaurant.latitude, restaurant.longitude],
-            actions=self._get_allowed_actions(restaurant),
             is_active=restaurant.is_active,
+            working_hours=WorkingHoursModel(root=self._get_working_hours(restaurant)),
+            features=self._get_features(restaurant),
+            actions=self._get_allowed_actions(restaurant),
         )
 
     async def add_restaurant_to_city_by_id(
@@ -145,10 +186,32 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions
             has_dine_in=restaurant.has_dine_in,
             is_active=restaurant.is_active,
         )
-
-        # Сохранение в БД
         self._session.add(new_restaurant)
         await self._session.flush()
+        
+        working_hours_list: List[WorkingHours] = []
+        for day_num in range(7):
+            working_hours = WorkingHours(
+                restaurant_id=new_restaurant.id,
+                day_of_week=day_num,
+                opens_at=datetime.strptime("09:00", "%H:%M").time(),
+                closes_at=datetime.strptime("22:00", "%H:%M").time(),
+                is_holiday=True
+            )
+            self._session.add(working_hours)
+            working_hours_list.append(working_hours)
+        
+        await self._session.flush()
+
+        # Формируем working_hours вручную, не вызывая _get_working_hours
+        working_hours_model = {}
+        for wh in working_hours_list:
+            day_key = self.DAY_MAP[wh.day_of_week]
+            working_hours_model[day_key] = HoursItem(
+                from_=wh.opens_at.strftime("%H:%M"),
+                to=wh.closes_at.strftime("%H:%M"),
+                is_holiday=wh.is_holiday,
+            )
 
         # Формирование ответа
         return AddRestaurantResponse(
@@ -157,8 +220,10 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions
             phone=new_restaurant.phone,
             address=new_restaurant.address,
             coords=[new_restaurant.latitude, new_restaurant.longitude],
-            actions=self._get_allowed_actions(new_restaurant),
             is_active=new_restaurant.is_active,
+            actions=self._get_allowed_actions(new_restaurant),
+            working_hours=WorkingHoursModel(root=working_hours_model),
+            features=[],
         )
 
     async def delete_restaurant(
@@ -191,6 +256,7 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions
             working_hours[day_key] = HoursItem(
                 from_=wh.opens_at.strftime("%H:%M"),
                 to=wh.closes_at.strftime("%H:%M"),
+                is_holiday=wh.is_holiday,
             )
 
         return working_hours

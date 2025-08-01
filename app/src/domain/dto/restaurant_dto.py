@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 import re
 from typing import Dict, List, Optional
@@ -10,11 +11,30 @@ class RestaurantActionEnum(Enum):
     TAKEAWAY = "takeaway"
     INSIDE = "inside"
 
+class DayShortName(str, Enum):
+    MONDAY = "пн"
+    TUESDAY = "вт"
+    WEDNESDAY = "ср"
+    THURSDAY = "чт"
+    FRIDAY = "пт"
+    SATURDAY = "сб"
+    SUNDAY = "вс"
+
+
+class HoursItem(BaseModel):
+    from_: str
+    to: str
+    is_holiday: bool
+
+
+class WorkingHoursModel(RootModel):
+    root: Dict[DayShortName, HoursItem]
+
 
 class BaseRestaurantRequest(BaseModel):
-    name: Optional[str] = Field(None, max_length=500)
+    name: Optional[str] = None
     phone: Optional[str] = None
-    address: Optional[str] = Field(None, max_length=5000)
+    address: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     has_delivery: Optional[bool] = None
@@ -72,32 +92,16 @@ class BaseRestaurantResponse(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     coords: Optional[List[float]] = None
-    actions: Optional[List[RestaurantActionEnum]] = None
     is_active: Optional[bool] = None
+    actions: Optional[List[RestaurantActionEnum]] = None
+    working_hours: WorkingHoursModel
+    features: List[str]
 
 
 ### GET RESTAURANTS
 
-class DayShortName(str, Enum):
-    MONDAY = "пн"
-    TUESDAY = "вт"
-    WEDNESDAY = "ср"
-    THURSDAY = "чт"
-    FRIDAY = "пт"
-    SATURDAY = "сб"
-    SUNDAY = "вс"
-
-
-class HoursItem(BaseModel):
-    from_: str
-    to: str
-
     class Config:
         allow_population_by_field_name = True
-
-
-class WorkingHoursModel(RootModel):
-    root: Dict[DayShortName, HoursItem]
 
 
 class RestaurantItem(BaseModel):
@@ -148,7 +152,42 @@ class AddRestaurantResponse(BaseRestaurantResponse):
 # Update restaurant
 
 class UpdateRestaurantRequest(BaseRestaurantRequest):
-    pass
+    working_hours: Optional[WorkingHoursModel] = None
+    features: Optional[List[str]] = None
+    
+    @field_validator("working_hours")
+    def validate_working_hours(cls, v: Optional[WorkingHoursModel]):
+        if v is None:
+            return v
+        
+        for day, hours in v.root.items():
+            try:
+                opens = datetime.strptime(hours.from_, "%H:%M").time()
+                closes = datetime.strptime(hours.to, "%H:%M").time()
+                if opens >= closes:
+                    raise ValueError(f"Opening time must be before closing time for {day}")
+            except ValueError as e:
+                raise ValueError(f"Invalid time format for {day}: {str(e)}")
+        
+        return v
+
+    @field_validator("features")
+    def validate_features(cls, v: Optional[List[str]]):
+        if v is None:
+            return v
+        
+        if len(v) != len(set(v)):
+            raise ValueError("Feature names must be unique")
+        
+        for feature in v:
+            if not feature.strip():
+                raise ValueError("Feature name cannot be empty")
+            if len(feature) > 100:
+                raise ValueError("Feature name is too long (max 100 chars)")
+            if any(char in feature for char in ["'", '"', ";", "--"]):
+                raise ValueError("Invalid characters in feature name")
+        
+        return v
 
 class UpdateRestaurantResponse(BaseRestaurantResponse):
     pass
