@@ -2,6 +2,15 @@ class InfrastructureError(Exception):
     pass
 
 
+class FeatureNotFoundError(InfrastructureError):
+    def __init__(self, id: int = None) -> None:
+        if id:
+            msg = f"Cannot find feature with id: {id}"
+        else:
+            msg = "Cannot find any feature"
+        super().__init__(msg)
+
+
 class CityNotFoundError(InfrastructureError):
     def __init__(self, id: int = None) -> None:
         if id:

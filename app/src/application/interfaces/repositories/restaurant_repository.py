@@ -7,7 +7,6 @@ from src.domain.dto.restaurant_dto import (
     AddRestaurantResponse,
     DeleteRestaurantResponse,
     GetCityRestaurantsResponse,
-    GetRestaurantResponse,
     UpdateRestaurantRequest,
     UpdateRestaurantResponse,
 )

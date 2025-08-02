@@ -28,7 +28,7 @@ from src.domain.dto.restaurant_dto import (
 )
 
 
-class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions
+class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Response DTOs перенести в interactors
     DAY_MAP = {
         0: DayShortName.MONDAY,
         1: DayShortName.TUESDAY,

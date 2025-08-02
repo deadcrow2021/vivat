@@ -13,7 +13,8 @@ from src.config import Config, create_config
 from src.infrastructure.adapters.controllers import (
     food_controller,
     restaurant_controller,
-    city_controller
+    city_controller,
+    feature_controller
 )
 
 
@@ -21,6 +22,7 @@ def setup_routers(app: FastAPI) -> None:
     app.include_router(food_controller.router, tags=["Food"])
     app.include_router(restaurant_controller.router, tags=["Restaurant"])
     app.include_router(city_controller.router, tags=["City"])
+    app.include_router(feature_controller.router, tags=["Feature"])
 
 
 def setup_middlewares(app: FastAPI, config: Config) -> None:
