@@ -23,6 +23,11 @@ services:
       - db
     env_file:
       - .env
+    environment:
+      ALLOWED_ORIGINS: ${ALLOW_ORIGINS}
+      ALLOW_METHODS: ${ALLOW_METHODS}
+      ALLOW_HEADERS: ${ALLOW_HEADERS}
+      ALLOW_CREDENTIALS: ${ALLOW_CREDENTIALS}
     volumes:
       - ./app/:/server
     # command: ["python3", "./main.py"]

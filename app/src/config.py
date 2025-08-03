@@ -1,7 +1,8 @@
 import logging
 import os
+from typing import Any, List, Union
 
-from pydantic import BaseModel, Field, field_validator, SecretStr
+from pydantic import AnyHttpUrl, BaseModel, Field, field_validator, SecretStr
 from pydantic_settings import BaseSettings as _BaseSettings
 from pydantic_settings import SettingsConfigDict
 from sqlalchemy import URL
@@ -18,6 +19,7 @@ class BaseSettings(_BaseSettings):
 
 
 class AppConfig(BaseSettings):
+    port: int = Field(default=int(os.environ["PORT"]))
     environment: str = Field(default=os.environ["ENVIRONMENT"])
     log_level: str = Field(default=os.environ["LOG_LEVEL"])
 
@@ -28,6 +30,34 @@ class AppConfig(BaseSettings):
         if not isinstance(level, int):
             raise ValueError(f"Invalid log level: {value}")
         return level
+
+
+class CORSConfig(BaseSettings):
+    allow_origins: str
+    allow_methods: str
+    allow_headers: str
+    allow_credentials: bool
+
+    @property
+    def get_allow_origins(self):
+        return self._split_strings(self.allow_origins)
+    
+    @property
+    def get_allow_methods(self):
+        return self._split_strings(self.allow_methods)
+    
+    @property
+    def get_allow_headers(self):
+        return self._split_strings(self.allow_headers)
+    
+    @property
+    def get_allow_credentials(self):
+        if isinstance(self.allow_credentials, str):
+            return self.allow_credentials.lower() == "true"
+        return self.allow_credentials
+    
+    def _split_strings(self, strings: str) -> List[str]:
+        return [item.strip() for item in strings.split(",")]
 
 
 class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
@@ -51,11 +81,13 @@ class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
 
 class Config(BaseModel):
     app: AppConfig
+    cors: CORSConfig
     postgres: PostgresConfig
 
 
 def create_config() -> Config:
     return Config(
         app=AppConfig(),
+        cors=CORSConfig(),
         postgres=PostgresConfig(),
     )

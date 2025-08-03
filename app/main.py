@@ -28,13 +28,10 @@ def setup_routers(app: FastAPI) -> None:
 def setup_middlewares(app: FastAPI, config: Config) -> None:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:3000",
-            # "http://frontend:3000"  # Docker сеть
-        ],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origins=config.cors.get_allow_origins,
+        allow_methods=config.cors.get_allow_methods,
+        allow_headers=config.cors.get_allow_headers,
+        allow_credentials=config.cors.get_allow_credentials,
         # BaseHTTPMiddleware,
         # SessionMiddleware(session_config=config.session)
     )
@@ -43,8 +40,7 @@ def setup_middlewares(app: FastAPI, config: Config) -> None:
 def create_application() -> FastAPI:
     config: Config = create_config()
     app: FastAPI = FastAPI(
-        # title=config.app.title,
-        # debug=config.app.debug
+        debug=True if config.app.environment == "development" else False
     )
 
     container: AsyncContainer = create_container()
@@ -57,6 +53,9 @@ def create_application() -> FastAPI:
 
 
 if __name__ == "__main__":
+    config: Config = create_config()
+
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    uvicorn.run(create_application(), host="0.0.0.0", port=8000)
+
+    uvicorn.run(create_application(), host="0.0.0.0", port=config.app.port)
