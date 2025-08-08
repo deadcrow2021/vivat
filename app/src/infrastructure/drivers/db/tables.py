@@ -16,8 +16,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.sql import func
 from sqlalchemy_utils import PhoneNumberType, EmailType
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
 
 from src.infrastructure.drivers.db.base import Base
+from src.config import ArgonConfig
 
 
 # Для добавленных ингредиентов
@@ -386,6 +389,31 @@ class User(Base):
         "Food", secondary=user_favorite_association, back_populates="users"
     )
     orders: Mapped[list["Order"]] = relationship("Order", back_populates="user")
+
+    def set_password(self, password: str, argon_config: ArgonConfig):
+        """Установка пароля с использованием Argon2"""
+
+        ph = PasswordHasher(
+            time_cost=argon_config.argon2_time_cost,
+            memory_cost=argon_config.argon2_memory_cost,
+            parallelism=argon_config.argon2_parallelism,
+        )
+        self.password_hash = ph.hash(password)
+
+    def check_password(self, password: str) -> bool:
+        """Проверка пароля с защитой от атак по времени"""
+        if not self.password_hash:
+            return False
+        try:
+            ph = PasswordHasher()
+            return ph.verify(self.password_hash, password)
+        except (VerifyMismatchError, InvalidHashError):
+            return False
+    
+    def needs_rehash(self) -> bool:
+        """Проверка, нужно ли перехешировать пароль (при изменении параметров)"""
+        ph = PasswordHasher()
+        return ph.check_needs_rehash(self.password_hash)
 
 
 class UserAddress(Base):

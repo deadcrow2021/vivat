@@ -32,6 +32,14 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     # INFRASTRUCTURE EXCEPTION HANDLERS
+    @app.exception_handler(infra_exc.InvalidCredentialsError)
+    async def invalid_credentials_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"detail": str(exc)},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     @app.exception_handler(infra_exc.CityNotFoundError)
     async def city_not_found_handler(_: Request, exc: Exception) -> JSONResponse:
         return JSONResponse(
@@ -53,6 +61,13 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={"detail": str(exc)},
         )
 
+    @app.exception_handler(infra_exc.UserExistsError)
+    async def user_exists_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": str(exc)},
+        )
+
     # APPLICATION EXCEPTION HANDLERS
 
     @app.exception_handler(app_exc.IdNotValidError)
@@ -60,6 +75,13 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": "Id is not valid."},
+        )
+
+    @app.exception_handler(app_exc.TokenError)
+    async def token_error_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"detail": str(exc)},
         )
 
     # DOMAIN EXCEPTION HANDLERS

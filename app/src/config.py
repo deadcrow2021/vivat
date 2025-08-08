@@ -79,9 +79,25 @@ class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
         ).render_as_string(hide_password=False)
 
 
+class TokenConfig(BaseSettings):
+    refresh_token_cookie_key: str
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int # короткий токен (15-30 мин.)
+    refresh_token_expire_days: int # длинный токен (7-30 дней)
+
+
+class ArgonConfig(BaseSettings):
+    argon2_time_cost: int
+    argon2_memory_cost: int
+    argon2_parallelism: int
+
+
 class Config(BaseModel):
     app: AppConfig
     cors: CORSConfig
+    token: TokenConfig
+    argon2: ArgonConfig
     postgres: PostgresConfig
 
 
@@ -89,5 +105,7 @@ def create_config() -> Config:
     return Config(
         app=AppConfig(),
         cors=CORSConfig(),
+        token=TokenConfig(),
+        argon2=ArgonConfig(),
         postgres=PostgresConfig(),
     )
