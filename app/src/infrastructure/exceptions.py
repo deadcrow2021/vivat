@@ -35,6 +35,14 @@ class RestaurantNotFoundError(InfrastructureError):
         super().__init__(msg)
 
 
+class UserNotFoundError(InfrastructureError):
+    def __init__(self, id: int = None) -> None:
+        msg = f"Cannot find user"
+        if id:
+            msg += f" with id: {id}"
+        super().__init__(msg)
+
+
 class UserExistsError(InfrastructureError):
     def __init__(self, phone: str) -> None:
         msg = f"User with phone: {phone} already exists"

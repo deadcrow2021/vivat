@@ -61,6 +61,13 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={"detail": str(exc)},
         )
 
+    @app.exception_handler(infra_exc.UserNotFoundError)
+    async def user_not_found_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": str(exc)},
+        )
+
     @app.exception_handler(infra_exc.UserExistsError)
     async def user_exists_handler(_: Request, exc: Exception) -> JSONResponse:
         return JSONResponse(
