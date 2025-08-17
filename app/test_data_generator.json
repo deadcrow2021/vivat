@@ -1,5 +1,9 @@
 {
     "city_num": 5,
     "features_num": 10,
-    "restaurants_per_city_num": 5
+    "restaurants_per_city_num": 5,
+    "categories_num": 10,
+    "food_num": 20,
+    "ingredients_num": 20,
+    "characteristics_num": 20
 }

@@ -1,0 +1,14 @@
+from dishka import provide, Provider, Scope
+
+from src.application.interfaces.interactors.menu_category_interactor import GetMenuCategoryInteractor
+from src.application.interfaces.transaction_manager import ITransactionManager
+from src.application.interfaces.repositories.menu_category_repository import IMunuCategoryRepository
+
+
+class MenuCategoryInteractorProvider(Provider):
+
+    @provide(scope=Scope.REQUEST)
+    async def get_menu_category_interactor(
+        self, menu_category_repository: IMunuCategoryRepository
+    ) -> GetMenuCategoryInteractor:
+        return GetMenuCategoryInteractor(menu_category_repository)

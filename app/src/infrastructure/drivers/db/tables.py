@@ -172,6 +172,7 @@ class Restaurant(Base):
         "MenuCategory",
         secondary=restaurant_category_association,
         back_populates="restaurants",
+        lazy="selectin"
     )
     features: Mapped[list["Feature"]] = relationship(
         "Feature",
@@ -294,6 +295,7 @@ class Ingredient(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
     price: Mapped[float] = mapped_column(Numeric(10, 2))
+    image_url : Mapped[str] = mapped_column(String(2000), nullable=True)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Связи

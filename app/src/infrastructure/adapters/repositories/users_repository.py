@@ -3,7 +3,7 @@ from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.src.infrastructure.exceptions import UserNotFoundError
+from src.infrastructure.exceptions import UserNotFoundError
 from src.application.interfaces.repositories.users_repository import IUsersRepository
 from src.infrastructure.drivers.db.tables import User
 from src.config import Config

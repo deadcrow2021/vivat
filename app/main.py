@@ -16,7 +16,8 @@ from src.infrastructure.adapters.controllers import (
     city_controller,
     feature_controller,
     auth_controller,
-    users_controller
+    users_controller,
+    menu_category_controller
 )
 
 
@@ -27,6 +28,7 @@ def setup_routers(app: FastAPI) -> None:
     app.include_router(feature_controller.router, tags=["Feature"])
     app.include_router(auth_controller.router, tags=["Auth"])
     app.include_router(users_controller.router, tags=["Users"])
+    app.include_router(menu_category_controller.router, tags=["Menu Category"])
 
 
 def setup_middlewares(app: FastAPI, config: Config) -> None:

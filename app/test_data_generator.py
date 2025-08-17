@@ -15,12 +15,12 @@ from src.infrastructure.drivers.db.tables import (
     Feature,
     Restaurant,
     WorkingHours,
-    # Food,
-    # FoodCharacteristic,
-    # FoodIngredientAssociation,
-    # FoodVariant,
-    # Ingredient,
-    # MenuCategory,
+    MenuCategory,
+    Food,
+    FoodCharacteristic,
+    FoodIngredientAssociation,
+    FoodVariant,
+    Ingredient,
     # User,
     # UserAddress,
 )
@@ -55,6 +55,21 @@ async def generate_test_data(session: AsyncSession):
     # 3. Генерация ресторанов
     restaurants: list[Restaurant] = []
 
+        # 5. Категории меню
+    categories = [
+        MenuCategory(
+            name=fake.word(),
+            display_order=random.randint(1, 999),
+        )
+        for i in range(json_data['categories_num'])
+    ]
+    session.add_all(categories)
+    await session.flush()
+
+    num_cats = min(len(categories), random.randint(8, 10))
+    selected_categories = random.sample(categories, k=num_cats)
+    
+
     for city in cities:
         for _ in range(json_data['restaurants_per_city_num']):
             restaurant = Restaurant(
@@ -67,9 +82,11 @@ async def generate_test_data(session: AsyncSession):
                 has_delivery=fake.boolean(),
                 has_takeaway=fake.boolean(),
                 has_dine_in=fake.boolean(),
+                
             )
             # Связь M2M с фичами
             restaurant.features = random.sample(features, k=random.randint(3, 8))
+            restaurant.menu_categories = selected_categories
             restaurants.append(restaurant)
     session.add_all(restaurants)
     await session.flush()
@@ -87,54 +104,59 @@ async def generate_test_data(session: AsyncSession):
             working_hours.append(wh)
     session.add_all(working_hours)
 
-    # # 5. Категории меню
-    # categories = [MenuCategory(name=fake.word(), display_order=i) for i in range(10)]
-    # session.add_all(categories)
-    # session.flush()
+    # 6. Ингредиенты
+    ingredients = [
+        Ingredient(
+            name=fake.word() + str(random.randint(100, 999)),
+            price=round(random.uniform(50, 150), 2),
+            is_available=False if random.randint(0, 10) == 1 else True,
+            image_url=fake.image_url(),
+        )
+        for _ in range(json_data['ingredients_num'])
+    ]
+    session.add_all(ingredients)
 
-    # # Связь M2M: рестораны и категории
-    # for restaurant in restaurants:
-    #     restaurant.categories = random.sample(categories, k=random.randint(2, 5))
+    # 7. Характеристики еды
+    characteristics = [
+        FoodCharacteristic(
+            measure_value=f"{random.randint(30, 500)}"
+        ) for _ in range(json_data['characteristics_num'])
+    ]
+    session.add_all(characteristics)
 
-    # # 6. Ингредиенты
-    # ingredients = [Ingredient(name=fake.word(), price=round(random.uniform(10, 100), 2)) for _ in range(20)]
-    # session.add_all(ingredients)
+    # 8. Генерация блюд
+    foods = []
+    for _ in range(json_data['food_num']):
+        variants = []
+        for _ in range(random.randint(1, 3)):
+            variant = FoodVariant(
+                price=round(random.uniform(100, 1000), 2),
+                ingredient_price_modifier=round(random.uniform(1, 2.0), 4),
+            )
+            # variant.food_id = food.id
+            variant.characteristics=random.choice(characteristics)
+            variants.append(variant)
 
-    # # 7. Характеристики еды
-    # characteristics = [
-    #     FoodCharacteristic(
-    #         measure_value=f"{random.randint(10, 50)}",
-    #         measure_name=random.choice(["см", "г", "мл"])
-    #     ) for _ in range(15)
-    # ]
-    # session.add_all(characteristics)
-
-    # # 8. Генерация блюд
-    # foods = []
-    # for _ in range(num_records * 2):
-    #     food = Food(
-    #         name=fake.sentence(3),
-    #         category_id=random.choice(categories).id,
-    #         image_url=fake.image_url(),
-    #         description=fake.text()
-    #     )
-    #     # Варианты блюд
-    #     food.variants = [
-    #         FoodVariant(
-    #             price=round(random.uniform(100, 1000), 2),
-    #             ingredient_price_modifier=round(random.uniform(0.5, 2.0), 4)
-    #         ) for _ in range(random.randint(1, 3))
-    #     ]
-    #     # Связь с ингредиентами через ассоциацию
-    #     for _ in range(random.randint(3, 8)):
-    #         assoc = FoodIngredientAssociation(
-    #             ingredient=random.choice(ingredients),
-    #             is_removable=fake.boolean(),
-    #             is_default=fake.boolean()
-    #         )
-    #         food.ingredient_associations.append(assoc)
-    #     foods.append(food)
-    # session.add_all(foods)
+        food = Food(
+            name=fake.sentence(2),
+            category_id=random.choice(categories).id,
+            image_url=fake.image_url(),
+            description=fake.text(),
+            measure_name=random.choice(["см", "г", "мл"]),
+            variants=variants
+        )
+        # Связь с ингредиентами через ассоциацию
+        num_ingredients = random.randint(3, min(8, len(ingredients)))
+        selected_ingredients = random.sample(ingredients, k=num_ingredients)
+        for ingredient in selected_ingredients:
+            assoc = FoodIngredientAssociation(
+                ingredient=ingredient,
+                is_removable=fake.boolean(),
+                is_default=fake.boolean()
+            )
+            food.ingredient_associations.append(assoc)
+        foods.append(food)
+    session.add_all(foods)
 
     # # 9. Отключение блюд в ресторанах (M2M)
     # for restaurant in restaurants:
