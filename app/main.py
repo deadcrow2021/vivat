@@ -17,7 +17,13 @@ from src.infrastructure.adapters.controllers import (
     feature_controller,
     auth_controller,
     users_controller,
-    menu_category_controller
+    menu_category_controller,
+    food_variant_controller,
+    food_characteristic_controller,
+    ingredient_controller,
+    user_address_controller,
+    order_controller,
+    order_item_controller
 )
 
 
@@ -29,6 +35,12 @@ def setup_routers(app: FastAPI) -> None:
     app.include_router(auth_controller.router, tags=["Auth"])
     app.include_router(users_controller.router, tags=["Users"])
     app.include_router(menu_category_controller.router, tags=["Menu Category"])
+    app.include_router(food_variant_controller.router, tags=["Food Variant"])
+    app.include_router(food_characteristic_controller.router, tags=["Food Characteristic"])
+    app.include_router(ingredient_controller.router, tags=["Ingredient"])
+    app.include_router(user_address_controller.router, tags=["User Address"])
+    app.include_router(order_controller.router, tags=["Order"])
+    app.include_router(order_item_controller.router, tags=["Order Item"])
 
 
 def setup_middlewares(app: FastAPI, config: Config) -> None:

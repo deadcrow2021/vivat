@@ -47,3 +47,8 @@ class UserExistsError(InfrastructureError):
     def __init__(self, phone: str) -> None:
         msg = f"User with phone: {phone} already exists"
         super().__init__(msg)
+
+
+class VariantNotFoundError(InfrastructureError):
+    def __init__(self, id: int) -> None:
+        super().__init__(f"Variant with id {id} already exists")

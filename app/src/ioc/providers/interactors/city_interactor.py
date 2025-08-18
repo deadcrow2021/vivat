@@ -2,9 +2,7 @@ from dishka import provide, Provider, Scope
 
 from src.application.interfaces.interactors.city_interactor import AddCityInteractor, DeleteCityInteractor, GetAllCitiesInteractor, GetCityInteractor, UpdateCityInteractor
 from src.application.interfaces.transaction_manager import ITransactionManager
-from src.application.interfaces.repositories.city_repository import (
-    ICityRepository
-)
+from src.application.interfaces.repositories.city_repository import ICityRepository
 
 
 class CityInteractorProvider(Provider):

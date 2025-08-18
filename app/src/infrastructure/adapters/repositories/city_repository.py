@@ -1,13 +1,10 @@
 from typing import List
-from sqlalchemy import select, or_
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.dto.city_dto import AddCityRequest, DeleteCityResponse, UpdateCityRequest
 from src.infrastructure.exceptions import CityNotFoundError
-from src.application.interfaces.repositories.city_repository import (
-    ICityRepository
-)
+from src.application.interfaces.repositories.city_repository import ICityRepository
 from src.infrastructure.drivers.db.tables import City
 
 

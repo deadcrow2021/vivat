@@ -330,8 +330,8 @@ class Order(Base):
     )
     total_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     status: Mapped[str] = mapped_column(String(100), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
 
     # Связи
     items: Mapped[list["OrderItem"]] = relationship(
