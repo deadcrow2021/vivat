@@ -10,7 +10,7 @@ from src.infrastructure.exceptions import CityNotFoundError, RestaurantNotFoundE
 from src.application.interfaces.repositories.restaurant_repository import (
     IRestaurantRepository,
 )
-from src.infrastructure.drivers.db.tables import City, Feature, Restaurant, WorkingHours
+from src.infrastructure.drivers.db.tables import City, Feature, MenuCategory, Restaurant, WorkingHours
 from src.domain.dto.restaurant_dto import (
     AddRestaurantRequest,
     AddRestaurantResponse,
@@ -150,10 +150,20 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             restaurant.features.clear()
 
             # Находим и добавляем новые фичи
-            stmt = select(Feature).where(Feature.name.in_(update_restaurant.features))
+            stmt = select(Feature).where(Feature.name.in_(update_restaurant.features)) # TODO: вынести в отдельны репозиторий
             result = await self._session.execute(stmt)
             features = result.scalars().all()
             restaurant.features.extend(features)
+
+        if update_restaurant.menu_categories is not None:
+            # Очищаем текущие категории меню
+            restaurant.menu_categories.clear()
+
+            # Находим и добавляем новые категории меню
+            stmt = select(MenuCategory).where(MenuCategory.id.in_(update_restaurant.menu_categories)) # TODO: вынести в отдельный репозиторий
+            result = await self._session.execute(stmt)
+            menu_categories = result.scalars().all()
+            restaurant.menu_categories.extend(menu_categories)
 
         await self._session.flush()
 
@@ -167,6 +177,7 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             is_active=restaurant.is_active,
             working_hours=WorkingHoursModel(root=self._get_working_hours(restaurant)),
             features=self._get_features(restaurant),
+            menu_categories=self._get_menu_categories(restaurant),
             actions=self._get_allowed_actions(restaurant),
         )
 
@@ -223,6 +234,7 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             is_active=new_restaurant.is_active,
             actions=self._get_allowed_actions(new_restaurant),
             working_hours=WorkingHoursModel(root=working_hours_model),
+            menu_categories=[],
             features=[],
         )
 
@@ -268,3 +280,11 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             features.append(feature.name)
 
         return features
+
+    def _get_menu_categories(self, restaurant_obj: Restaurant):
+        menu_categories = []
+
+        for menu_category in restaurant_obj.menu_categories:
+            menu_categories.append(menu_category.id)
+
+        return menu_categories

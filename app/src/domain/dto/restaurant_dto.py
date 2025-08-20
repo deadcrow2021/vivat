@@ -95,6 +95,7 @@ class BaseRestaurantResponse(BaseModel):
     is_active: Optional[bool] = None
     actions: Optional[List[RestaurantActionEnum]] = None
     working_hours: WorkingHoursModel
+    menu_categories: List[int]
     features: List[str]
 
 
@@ -153,6 +154,7 @@ class AddRestaurantResponse(BaseRestaurantResponse):
 
 class UpdateRestaurantRequest(BaseRestaurantRequest):
     working_hours: Optional[WorkingHoursModel] = None
+    menu_categories: Optional[List[int]] = None
     features: Optional[List[str]] = None
     
     @field_validator("working_hours")
