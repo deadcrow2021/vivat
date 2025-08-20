@@ -11,7 +11,7 @@ class PromotionItem(BaseModel):
 class CategoryItem(BaseModel):
     id: int
     name: str
-    need_addings: Optional[bool] = None
+    # need_addings: Optional[bool] = None
 
 
 class AddingItem(BaseModel):

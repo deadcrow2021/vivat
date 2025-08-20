@@ -3,7 +3,7 @@ from dishka.integrations.fastapi import inject
 from fastapi import APIRouter
 from starlette import status
 
-from app.src.domain.dto.order_item_dto import AddOrderItemRequest, AddOrderItemResponse
+from src.domain.dto.order_item_dto import AddOrderItemRequest, AddOrderItemResponse
 from src.application.interfaces.interactors.order_item_interactor import AddOrderItemInteractor
 
 

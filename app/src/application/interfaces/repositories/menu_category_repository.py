@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import List, Protocol
 
+from src.domain.dto.menu_category_dto import PositionItem
 from src.domain.dto.city_dto import AddCityRequest, DeleteCityResponse, UpdateCityRequest
 from src.infrastructure.drivers.db.tables import MenuCategory
 
@@ -11,5 +12,5 @@ class IMunuCategoryRepository(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_menu_categories_data(self, current_category: MenuCategory) -> MenuCategory:
+    async def get_menu_category_positions(self, current_category: MenuCategory) -> List[PositionItem]:
         raise NotImplementedError

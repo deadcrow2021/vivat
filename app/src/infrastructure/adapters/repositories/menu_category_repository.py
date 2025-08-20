@@ -19,11 +19,15 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
             .order_by(MenuCategory.display_order.asc())
         )
         result = await self._session.execute(stmt)
-        return result.scalars().all()
+        categories = result.scalars().all()
+        
+        if not categories:
+            raise ValueError("Menu categories not found") ### Change
+        
+        return categories
 
 
-    async def get_menu_categories_data(self, current_category: MenuCategory) -> HomePageResponse:
-        # Основной запрос с JOIN вместо нескольких отдельных запросов
+    async def get_menu_category_positions(self, current_category: MenuCategory) -> List[PositionItem]:
         stmt = (
             select(MenuCategory)
             .order_by(MenuCategory.display_order.asc())
@@ -41,7 +45,7 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
                 .contains_eager(Food.ingredient_associations)
                 .contains_eager(FoodIngredientAssociation.ingredient)
             )
-            # .where(MenuCategory.id == current_category.id)
+            .where(MenuCategory.id == current_category.id)
             .where(FoodVariant.is_active == True)  # Фильтрация неактивных вариантов сразу в БД
             .where(FoodIngredientAssociation.ingredient.has(Ingredient.is_available == True))  # Только доступные ингредиенты
         )
@@ -52,63 +56,43 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
         if not categories:
             return HomePageResponse(date=None)
 
-        # Преобразование данных
         positions = []
+        for food in current_category.foods:
+            if not food.variants:  # Пропускаем если нет активных вариантов
+                continue
 
-        category_items = []
-        for category in categories:
-            # Преобразуем категорию
-            category_items.append(
-                CategoryItem(
-                    id=category.id,
-                    name=category.name,
-                    need_addings=any(food.ingredient_associations for food in category.foods)
+            # Преобразуем варианты в SizeInfo
+            size_info = [
+                SizeInfo(
+                    measure_value=int(variant.characteristics[0].measure_value) if variant.characteristics else 0,
+                    price=float(variant.price),
+                    price_multiplier=float(variant.ingredient_price_modifier)
+                )
+                for variant in food.variants
+            ]
+
+            ingredients = []
+            for assoc in food.ingredient_associations or []:
+                ingredient = assoc.ingredient
+                ingredients.append(
+                    AddingItem(
+                        id=ingredient.id,
+                        name=ingredient.name,
+                        image_url=ingredient.image_url or "",
+                        price=float(ingredient.price)
+                    )
+                )
+
+            positions.append(
+                PositionItem(
+                    id=food.id,
+                    name=food.name,
+                    image_url=food.image_url or "",
+                    description=food.description or "",
+                    measure_name=food.measure_name or "",
+                    size=size_info,
+                    ingredients=ingredients
                 )
             )
-
-            # Для первой категории добавляем позиции
-            if category == categories[0]:
-                for food in category.foods:
-                    if not food.variants:  # Пропускаем если нет активных вариантов
-                        continue
-
-                    # Преобразуем варианты в SizeInfo
-                    size_info = [
-                        SizeInfo(
-                            measure_value=int(variant.characteristics[0].measure_value) if variant.characteristics else 0,
-                            price=float(variant.price),
-                            price_multiplier=float(variant.ingredient_price_modifier)
-                        )
-                        for variant in food.variants
-                    ]
-
-                    # Преобразуем ингредиенты
-                    ingredients = [
-                        AddingItem(
-                            id=ingredient.id,
-                            name=ingredient.name,
-                            image_url=ingredient.image_url or "",
-                            price=float(ingredient.price)
-                        )
-                        for assoc in food.ingredient_associations
-                        for ingredient in [assoc.ingredient]
-                    ] if food.ingredient_associations else None
-
-                    positions.append(
-                        PositionItem(
-                            id=food.id,
-                            name=food.name,
-                            image_url=food.image_url or "",
-                            description=food.description or "",
-                            measure_name=food.measure_name or "",
-                            size=size_info,
-                            ingredients=ingredients
-                        )
-                    )
-
-        return HomePageResponse(
-            date=HomeData(
-                categories=category_items,
-                positions=positions or None
-            )
-        )
+        
+        return positions
