@@ -45,3 +45,21 @@ class HomeData(BaseModel):
 
 class HomePageResponse(BaseModel):
     date: Optional[HomeData] = None
+
+
+### Add categoty to restaurant
+class AddCategoryToRestaurantRequest(BaseModel):
+    restaurant_id: int
+    category_id: int
+
+    @field_validator("restaurant_id")
+    def check_restaurant_id(cls, value: int) -> int:
+        if value < 1:
+            raise ValueError("Restaurant id must be greater than 0")
+        return value
+
+    @field_validator("category_id")
+    def check_category_id(cls, value: int) -> int:
+        if value < 1:
+            raise ValueError("Category id must be greater than 0")
+        return value

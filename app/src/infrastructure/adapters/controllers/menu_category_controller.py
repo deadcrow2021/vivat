@@ -42,6 +42,7 @@ async def get_menu_category(
 @inject
 async def get_restaurant_menu_category(
     get_restaurant_category: FromDishka[GetRestaurantMenuCategoryInteractor],
-    # category_id: Annotated[int | None, Query(alias="category_id", gt=0)] = None
+    restaurant_id: int,
+    category_id: Annotated[int | None, Query(alias="category_id", gt=0)] = None
 ):
-    return await get_restaurant_category()
+    return await get_restaurant_category(restaurant_id, category_id)

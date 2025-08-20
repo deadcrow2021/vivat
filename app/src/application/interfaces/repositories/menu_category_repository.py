@@ -14,3 +14,9 @@ class IMunuCategoryRepository(Protocol):
     @abstractmethod
     async def get_menu_category_positions(self, current_category: MenuCategory) -> List[PositionItem]:
         raise NotImplementedError
+
+    async def get_restaurant_menu_categories(self, restaurant_id: int) -> List[MenuCategory]:
+        raise NotImplementedError
+
+    async def get_restaurant_menu_category_positions(self, restaurant_id: int, current_category: MenuCategory) -> List[PositionItem]:
+        raise NotImplementedError

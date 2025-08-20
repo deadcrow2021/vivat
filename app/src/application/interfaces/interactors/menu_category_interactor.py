@@ -46,19 +46,53 @@ class GetMenuCategoryInteractor:
         )
 
 
-
 class GetRestaurantMenuCategoryInteractor:
     def __init__(
         self, menu_category_repository: menu_category_repository.IMunuCategoryRepository
     ):
         self._menu_category_repository = menu_category_repository
 
-    async def __call__(self, category_id: Union[int, None]) -> GetCityResponse:
-        categories = await self._menu_category_repository.get_menu_categories()
+    async def __call__(
+        self,
+        restaurant_id: int,
+        category_id: Union[int, None] = None
+    ) -> HomePageResponse:
+        # Получаем категории для конкретного ресторана
+        categories = await self._menu_category_repository.get_restaurant_menu_categories(restaurant_id)
         
+        if not categories:
+            raise ValueError("Menu categories not found for this restaurant")
+        
+        # Выбираем текущую категорию
+        if category_id:
+            current_category = next(
+                (category for category in categories if category.id == category_id),
+                None
+            )
+            if not current_category:
+                raise ValueError(f"Category with id {category_id} not found")
+        else:
+            current_category = categories[0]
+        
+        # Получаем позиции для текущей категории с учетом отключенных блюд
+        positions = await self._menu_category_repository.get_restaurant_menu_category_positions(
+            restaurant_id,
+            current_category
+        )
+
+        # Формируем список категорий для ответа
+        category_items = [
+            CategoryItem(
+                id=category.id,
+                name=category.name,
+                # need_addings=any(food.ingredient_associations for food in category.foods)
+            )
+            for category in categories
+        ]
+
         return HomePageResponse(
             date=HomeData(
-                # categories=category_items,
-                # positions=positions
+                categories=category_items,
+                positions=positions
             )
         )
