@@ -3,7 +3,7 @@ from sqlalchemy import and_, select, or_
 from sqlalchemy.orm import contains_eager, joinedload, aliased
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.dto.menu_category_dto import AddingItem, PositionItem, SizeInfo
+from src.domain.dto.menu_category_dto import AddMenuCategoryRequest, AddingItem, PositionItem, SizeInfo
 from src.application.interfaces.repositories.menu_category_repository import IMunuCategoryRepository
 from src.infrastructure.drivers.db.tables import (
     Food,
@@ -19,7 +19,30 @@ from src.infrastructure.drivers.db.tables import (
 class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
-        
+
+
+    async def add_menu_category(self, menu_category_request: AddMenuCategoryRequest) -> MenuCategory:
+        stmt = (
+            select(MenuCategory)
+            .order_by(MenuCategory.display_order.desc())
+            .limit(1)
+        )
+        result = await self._session.execute(stmt)
+        last_category = result.scalars().one_or_none() # TODO: Вынести в отдельную функцию
+
+        if not last_category:
+            raise ValueError("Menu categories not found") # TODO: Change
+
+        new_category = MenuCategory(
+            name=menu_category_request.name,
+            display_order=last_category.display_order + 1
+        )
+
+        self._session.add(new_category)
+        await self._session.flush()
+
+        return new_category
+
 
     async def get_menu_categories(self) -> List[MenuCategory]:
         stmt = (

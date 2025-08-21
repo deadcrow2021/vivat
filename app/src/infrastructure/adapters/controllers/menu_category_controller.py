@@ -4,8 +4,9 @@ from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Query
 from starlette import status
 
-from src.domain.dto.menu_category_dto import HomePageResponse
+from src.domain.dto.menu_category_dto import AddMenuCategoryRequest, AddMenuCategoryResponse, HomePageResponse
 from src.application.interfaces.interactors.menu_category_interactor import (
+    AddMenuCategoryInteractor,
     GetMenuCategoryInteractor,
     GetRestaurantMenuCategoryInteractor
 )
@@ -46,3 +47,19 @@ async def get_restaurant_menu_category(
     category_id: Annotated[int | None, Query(alias="category_id", gt=0)] = None
 ):
     return await get_restaurant_category(restaurant_id, category_id)
+
+
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=AddMenuCategoryResponse,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"error": "Menu category haven't been created."},
+    },
+)
+@inject
+async def add_menu_category(
+    menu_category_request: AddMenuCategoryRequest,
+    add_category: FromDishka[AddMenuCategoryInteractor]
+):
+    return await add_category(menu_category_request)
