@@ -12,6 +12,15 @@ class UserAddressRepository(IUserAddressRepository): # TODO: add exceptions
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    async def get_user_addresses_by_user_id(self, user_id: int) -> List[UserAddress]:
+        stmt = select(UserAddress).where(UserAddress.user_id == user_id)
+        address_result = await self._session.execute(stmt)
+        address = address_result.scalars().one_or_none()
+        
+        if not address:
+            raise ValueError(f"User address with id {user_id} not found") # TODO: add exceptions
+
+        return address
 
     async def add_address_to_user_by_id(
         self,

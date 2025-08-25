@@ -80,6 +80,7 @@ class PostgresConfig(BaseSettings, env_prefix="POSTGRES_"):
 
 
 class TokenConfig(BaseSettings):
+    access_token_cookie_key: str
     refresh_token_cookie_key: str
     secret_key: str
     algorithm: str

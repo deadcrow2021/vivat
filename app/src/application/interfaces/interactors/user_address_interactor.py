@@ -5,6 +5,21 @@ from src.application.interfaces.repositories import user_address_repository
 
 
 # TODO: add exceptions
+# class GetUserAddressInteractor:
+#     def __init__(
+#         self, user_address_repository: user_address_repository.IUserAddressRepository,
+#     ):
+#         self._user_address_repository = user_address_repository
+
+#     async def __call__(self, city_id: int) -> GetCityResponse:
+#         if city_id < 1:
+#             raise IdNotValidError
+
+#         city = await self._city_repository.get_city_by_id(city_id)
+        
+#         return 
+
+
 class AddUserAddressInteractor:
     def __init__(
         self, user_address_repository: user_address_repository.IUserAddressRepository,

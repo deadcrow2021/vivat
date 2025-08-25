@@ -10,7 +10,7 @@ class BaseUserRequest(BaseModel):
     @field_validator("password")
     def validate_password(cls, v: str):
         if len(v) < 8 or len(v) > 16:
-            raise ValueError("Password must be between 8 and 32 characters")
+            raise ValueError("Password must be between 8 and 16 characters")
 
         rules = [
             any(c.isupper() for c in v),  # хотя бы одна заглавная буква
@@ -37,20 +37,21 @@ class BaseUserRequest(BaseModel):
 class BaseUserResponse(BaseModel):
     id: int
     phone: str
-    email: str
+    # email: str
 
 
 class CreateUser(BaseUserRequest):
-    email: str = Field(..., max_length=100)
+    pass
+    # email: str = Field(..., max_length=100)
 
-    @field_validator("email")
-    def validate_email(cls, v: Optional[str]):
-        if v is None:
-            return v
-        pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-        if not re.match(pattern, v):
-            raise ValueError("Invalid email format")
-        return v
+    # @field_validator("email")
+    # def validate_email(cls, v: Optional[str]):
+    #     if v is None:
+    #         return v
+    #     pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    #     if not re.match(pattern, v):
+    #         raise ValueError("Invalid email format")
+    #     return v
 
 
 class CreateUserResponse(BaseUserResponse):
@@ -60,17 +61,38 @@ class CreateUserResponse(BaseUserResponse):
 class LoginUserRequest(BaseUserRequest):
     pass
 
+class LoginUserResponse(BaseUserResponse):
+    pass
+
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: Optional[str] = None
 
 
-class TokenDTO(BaseModel):
+class UserLogInDTO(BaseModel):
+    user_id: int
+    phone: str
+
+class LogInDTO(BaseModel):
+    user: UserLogInDTO
     access_token: Optional[str] = None
     refresh_token: Optional[str] = None
     token_type: Optional[str] = None
 
 
-class TokenData(BaseModel):
-    username: Optional[str] = None
+class UpdateUserResponse(BaseUserResponse):
+    pass
+
+# class TokenData(BaseModel):
+#     username: Optional[str] = None
+
+
+class LogOutResponse(BaseModel):
+    message: str
+    tokens_revoked: int
+
+
+class CurrentUserDTO(BaseModel):
+    id: int
+    phone: str

@@ -1,4 +1,5 @@
 from datetime import datetime, time
+from enum import Enum
 from typing import Optional
 
 from sqlalchemy import (
@@ -13,6 +14,7 @@ from sqlalchemy import (
     SmallInteger,
     Time,
 )
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.sql import func
 from sqlalchemy_utils import PhoneNumberType, EmailType
@@ -21,6 +23,13 @@ from argon2.exceptions import VerifyMismatchError, InvalidHashError
 
 from src.infrastructure.drivers.db.base import Base
 from src.config import ArgonConfig
+
+
+class OrderAction(Enum):
+    UNKNOWN = "unknown"
+    DELIVERY = "delivery"
+    TAKEAWAY = "takeaway"
+    INSIDE = "inside"
 
 
 # Для добавленных ингредиентов
@@ -205,37 +214,6 @@ class MenuCategory(Base):
     )  # FK
 
 
-class FoodCharacteristic(Base):
-    __tablename__ = "food_characteristic"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    measure_value: Mapped[str] = mapped_column(
-        String(200), nullable=True
-    )  # Подназвание. Для селектора
-    # на UI (30, 50 (см) и т.д. / Маленькая, Большая и т.д. / 300, 500 (г) и т.д.)
-    variants: Mapped[list["FoodVariant"]] = relationship(
-        "FoodVariant",
-        secondary=food_characteristic_variant_association,
-        back_populates="characteristics",
-    )
-
-
-class FoodVariant(Base):
-    __tablename__ = "food_variant"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    food_id: Mapped[int] = mapped_column(ForeignKey("food.id", ondelete="CASCADE"))
-    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    ingredient_price_modifier: Mapped[float] = mapped_column(
-        Numeric(10, 4), default=1.0
-    )
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    food: Mapped["Food"] = relationship(back_populates="variants")
-    characteristics: Mapped[list["FoodCharacteristic"]] = relationship(
-        "FoodCharacteristic",
-        secondary=food_characteristic_variant_association,
-        back_populates="variants",
-    )
-
-
 class Food(Base):
     __tablename__ = "food"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -257,8 +235,6 @@ class Food(Base):
     menu_category: Mapped["MenuCategory"] = relationship(
         "MenuCategory", back_populates="foods"
     )
-    # One2One
-    order_item: Mapped["OrderItem"] = relationship("OrderItem", back_populates="food")
     # M2M
     users: Mapped[list["User"]] = relationship(
         "User", secondary=user_favorite_association, back_populates="favorites"
@@ -273,6 +249,38 @@ class Food(Base):
     )
 
 
+class FoodVariant(Base):
+    __tablename__ = "food_variant"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    food_id: Mapped[int] = mapped_column(ForeignKey("food.id", ondelete="CASCADE"))
+    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    ingredient_price_modifier: Mapped[float] = mapped_column(
+        Numeric(10, 4), default=1.0
+    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    food: Mapped["Food"] = relationship(back_populates="variants")
+    order_item: Mapped["OrderItem"] = relationship("OrderItem", back_populates="food_variant")
+    characteristics: Mapped[list["FoodCharacteristic"]] = relationship(
+        "FoodCharacteristic",
+        secondary=food_characteristic_variant_association,
+        back_populates="variants",
+    )
+
+
+class FoodCharacteristic(Base):
+    __tablename__ = "food_characteristic"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    measure_value: Mapped[str] = mapped_column(
+        String(200), nullable=True
+    )  # Подназвание. Для селектора
+    # на UI (30, 50 (см) и т.д. / Маленькая, Большая и т.д. / 300, 500 (г) и т.д.)
+    variants: Mapped[list["FoodVariant"]] = relationship(
+        "FoodVariant",
+        secondary=food_characteristic_variant_association,
+        back_populates="characteristics",
+    )
+
+
 class FoodIngredientAssociation(Base):
     __tablename__ = "food_ingredient"
 
@@ -282,6 +290,7 @@ class FoodIngredientAssociation(Base):
     ingredient_id: Mapped[int] = mapped_column(
         ForeignKey("ingredient.id", ondelete="CASCADE"), primary_key=True
     )
+    is_adding: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_removable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_default: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
@@ -328,6 +337,16 @@ class Order(Base):
     address_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user_address.id", ondelete="RESTRICT")
     )
+    order_action: Mapped[OrderAction] = mapped_column(
+        SQLEnum(
+            OrderAction,
+            createnative_enum=True,
+            name="order_action_enum",
+            values_callable=lambda x: [e.value for e in x]
+        ),
+        nullable=False,
+        default=OrderAction.UNKNOWN
+    )
     total_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     status: Mapped[str] = mapped_column(String(100), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
@@ -349,8 +368,8 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_item"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    food_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("food.id", ondelete="RESTRICT")
+    food_variant_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("food_variant.id", ondelete="RESTRICT")
     )  # One2One
     order_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("order.id", ondelete="CASCADE")
@@ -358,7 +377,7 @@ class OrderItem(Base):
     final_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
 
     # Связи
-    food: Mapped["Food"] = relationship(back_populates="order_item")
+    food_variant: Mapped["FoodVariant"] = relationship(back_populates="order_item")
     order: Mapped[list["Order"]] = relationship(back_populates="items")
     added_ingredients: Mapped[list["Ingredient"]] = relationship(
         "Ingredient",
@@ -375,9 +394,9 @@ class OrderItem(Base):
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(500), nullable=False)
+    name: Mapped[str] = mapped_column(String(500), nullable=True)
     phone: Mapped[str] = mapped_column(PhoneNumberType(region="RU"), unique=True)
-    email: Mapped[str] = mapped_column(EmailType, unique=True)
+    email: Mapped[str] = mapped_column(EmailType, unique=True, nullable=True)
     hashed_password: Mapped[str] = mapped_column(
         String(), nullable=False, info={"hidden": True}
     )
@@ -391,6 +410,9 @@ class User(Base):
         "Food", secondary=user_favorite_association, back_populates="users"
     )
     orders: Mapped[list["Order"]] = relationship("Order", back_populates="user")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+        "RefreshToken", back_populates="user", cascade="all, delete-orphan"
+    )
 
     def set_password(self, password: str, argon_config: ArgonConfig):
         """Установка пароля с использованием Argon2"""
@@ -400,22 +422,22 @@ class User(Base):
             memory_cost=argon_config.argon2_memory_cost,
             parallelism=argon_config.argon2_parallelism,
         )
-        self.password_hash = ph.hash(password)
+        self.hashed_password = ph.hash(password)
 
     def check_password(self, password: str) -> bool:
         """Проверка пароля с защитой от атак по времени"""
-        if not self.password_hash:
+        if not self.hashed_password:
             return False
         try:
             ph = PasswordHasher()
-            return ph.verify(self.password_hash, password)
+            return ph.verify(self.hashed_password, password)
         except (VerifyMismatchError, InvalidHashError):
             return False
     
     def needs_rehash(self) -> bool:
         """Проверка, нужно ли перехешировать пароль (при изменении параметров)"""
         ph = PasswordHasher()
-        return ph.check_needs_rehash(self.password_hash)
+        return ph.check_needs_rehash(self.hashed_password)
 
 
 class UserAddress(Base):
@@ -434,3 +456,15 @@ class UserAddress(Base):
     # Связи
     user: Mapped["User"] = relationship("User", back_populates="addresses")
     orders: Mapped[list["Order"]] = relationship("Order", back_populates="address")
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_token"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"))
+    token: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    is_revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    # Связи
+    user: Mapped["User"] = relationship("User", back_populates="refresh_tokens")

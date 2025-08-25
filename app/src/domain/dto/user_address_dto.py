@@ -3,12 +3,12 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator
 
 
-class AddUserAddressRequest(BaseModel):
-    address: str
-    entrance: str
-    floor: int
-    apartment: str
-    is_primary: bool # TODO: Add logic for is_primary
+class BaseUserAddressRequest(BaseModel):
+    address: Optional[str] = None
+    entrance: Optional[str] = None
+    floor: Optional[float] = None
+    apartment: Optional[str] = None
+    is_primary: Optional[bool] = None # TODO: Add logic for is_primary
     
     # TODO: Add validators
 
@@ -31,3 +31,9 @@ class AddUserAddressResponse(BaseModel):
     floor: int
     apartment: str
     is_primary: bool
+
+
+# Add address
+
+class AddUserAddressRequest(BaseUserAddressRequest):
+    pass

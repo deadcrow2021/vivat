@@ -1,4 +1,4 @@
-from app.src.domain.dto.food_dto import AddFoodRequest, AddFoodResponse
+from src.domain.dto.food_dto import AddFoodRequest, AddFoodResponse
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import food_repository
 
