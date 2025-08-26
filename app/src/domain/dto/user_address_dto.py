@@ -25,7 +25,8 @@ class BaseUserAddressRequest(BaseModel):
         return v
 
 
-class AddUserAddressResponse(BaseModel):
+class BaseUserAddressResponse(BaseModel):
+    id: int
     address: str
     entrance: str
     floor: int
@@ -33,7 +34,26 @@ class AddUserAddressResponse(BaseModel):
     is_primary: bool
 
 
+# Get address
+class GetUserAddress(BaseUserAddressResponse):
+    pass
+
+class GetUserAddressResponse(BaseModel):
+    addresses: List[GetUserAddress]
+
 # Add address
 
 class AddUserAddressRequest(BaseUserAddressRequest):
+    address: str
+    entrance: str
+    floor: float
+    apartment: str
+
+class AddUserAddressResponse(BaseUserAddressResponse):
     pass
+
+
+# Delete address
+
+class DeleteAddressResponse(BaseModel):
+    id: int

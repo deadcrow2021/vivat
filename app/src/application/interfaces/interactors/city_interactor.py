@@ -1,4 +1,4 @@
-from src.domain.dto.city_dto import AddCityRequest, AddCityResponse, GetAllCitiesResponse, GetCityResponse, UpdateCityRequest, UpdateCityResponse
+from src.domain.dto.city_dto import AddCityRequest, AddCityResponse, DeleteCityResponse, GetAllCitiesResponse, GetCityResponse, UpdateCityRequest, UpdateCityResponse
 from src.application.exceptions import IdNotValidError
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import city_repository
@@ -95,7 +95,7 @@ class DeleteCityInteractor:
         self._city_repository = city_repository
         self._transaction_manager = transaction_manager
 
-    async def __call__(self, city_id: int) -> ...:
+    async def __call__(self, city_id: int) -> DeleteCityResponse:
         if city_id < 1:
             raise IdNotValidError
 
