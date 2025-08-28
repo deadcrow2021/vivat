@@ -3,6 +3,7 @@ import random
 import sys
 from datetime import time
 import json
+from typing import List
 
 from faker import Faker
 from dishka import FromDishka, AsyncContainer
@@ -125,7 +126,7 @@ async def generate_test_data(session: AsyncSession):
     session.add_all(characteristics)
 
     # 8. Генерация блюд
-    foods = []
+    foods: List[Food] = []
     for _ in range(json_data['food_num']):
         variants = []
         for _ in range(random.randint(1, 3)):
@@ -133,8 +134,8 @@ async def generate_test_data(session: AsyncSession):
                 price=round(random.uniform(100, 1000), 2),
                 ingredient_price_modifier=round(random.uniform(1, 2.0), 4),
             )
-            # variant.food_id = food.id
-            variant.characteristics=random.choice(characteristics)
+            # Правильное присвоение характеристик
+            variant.characteristics = [random.choice(characteristics)]
             variants.append(variant)
 
         food = Food(
@@ -145,18 +146,30 @@ async def generate_test_data(session: AsyncSession):
             measure_name=random.choice(["см", "г", "мл"]),
             variants=variants
         )
-        # Связь с ингредиентами через ассоциацию
+        foods.append(food)
+
+    session.add_all(foods)
+    await session.flush()
+
+    # 9. Связь блюд с ингредиентами через ассоциацию
+    for category in categories:
         num_ingredients = random.randint(3, min(8, len(ingredients)))
         selected_ingredients = random.sample(ingredients, k=num_ingredients)
-        for ingredient in selected_ingredients:
-            assoc = FoodIngredientAssociation(
-                ingredient=ingredient,
-                is_removable=fake.boolean(),
-                is_default=fake.boolean()
-            )
-            food.ingredient_associations.append(assoc)
-        foods.append(food)
-    session.add_all(foods)
+        
+        # Получаем все блюда этой категории
+        category_foods = [food for food in foods if food.category_id == category.id]
+        
+        for food in category_foods:
+            for ingredient in selected_ingredients:
+                assoc = FoodIngredientAssociation(
+                    food_id=food.id,
+                    ingredient_id=ingredient.id,
+                    is_adding=fake.boolean(),
+                    is_removable=fake.boolean(),
+                    is_default=fake.boolean()
+                )
+                session.add(assoc)
+
 
     # # 9. Отключение блюд в ресторанах (M2M)
     # for restaurant in restaurants:
