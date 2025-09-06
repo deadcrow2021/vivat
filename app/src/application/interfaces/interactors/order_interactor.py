@@ -1,6 +1,8 @@
-from src.domain.dto.order_dto import OrderRequest, OrderResponse
+import random
+import string
+from src.domain.dto.order_dto import OrderRequest, CreateOrderResponse
 from src.application.interfaces.transaction_manager import ITransactionManager
-from src.application.interfaces.repositories import order_repository
+from src.application.interfaces.repositories import order_repository, user_address_repository
 
 
 # TODO: add exceptions
@@ -8,22 +10,33 @@ class AddOrderInteractor:
     def __init__(
         self,
         order_repository: order_repository.IOrderRepository,
+        user_address_repository: user_address_repository.IUserAddressRepository,
         transaction_manager: ITransactionManager
     ):
         self._order_repository = order_repository
+        self._user_address_repository = user_address_repository
         self._transaction_manager = transaction_manager
 
-    async def __call__(self, order_request: OrderRequest) -> OrderResponse:
-        order = await self._order_repository.create_order(order_request)
+    async def __call__(self, order_request: OrderRequest, user_id: int) -> CreateOrderResponse:
+        await self._user_address_repository.untag_user_addresses(user_id)
+        order = await self._order_repository.create_order(order_request, user_id)
+        await self._user_address_repository.tag_user_address(user_id, order_request.user_info.address_id)
+
         await self._transaction_manager.commit()
 
-        return OrderResponse(
+        return CreateOrderResponse(
             id=order.id,
             user_id=order.user_id,
             restaurant_id=order.restaurant_id,
             address_id=order.address_id,
+            order_action=order.order_action,
             total_price=order.total_price,
             status=order.status,
-            created_at=order.created_at,
-            updated_at=order.updated_at
+            unique_code=self._generate_unique_code()
         )
+
+
+    def _generate_unique_code(self) -> str:
+        letter = random.choice(string.ascii_uppercase)
+        digits = random.randint(100, 999)
+        return f"{letter}{digits}"

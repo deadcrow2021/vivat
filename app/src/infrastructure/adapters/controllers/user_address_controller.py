@@ -5,8 +5,8 @@ from starlette import status
 
 from src.domain.dto.city_dto import DeleteCityResponse
 from src.application.interfaces.interactors.auth_interactor import GetCurrentUserInteractor
-from src.domain.dto.user_address_dto import AddUserAddressRequest, AddUserAddressResponse, GetUserAddressResponse
-from src.application.interfaces.interactors.user_address_interactor import AddUserAddressInteractor, DeleteAddressInteractor, GetUserAddressInteractor#, GetUserAddressInteractor
+from src.domain.dto.user_address_dto import AddUserAddressRequest, AddUserAddressResponse, GetUserAddressResponse, UpdateUserAddressRequest
+from src.application.interfaces.interactors.user_address_interactor import AddUserAddressInteractor, DeleteAddressInteractor, GetUserAddressInteractor, UpdateUserAddressInteractor#, GetUserAddressInteractor
 
 
 
@@ -47,6 +47,26 @@ async def add_user_address(
 ):
     user_dto = await user(request)
     return await add_address(user_dto.id, user_request)
+
+
+@router.patch(
+    "/{address_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=AddUserAddressResponse,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"error": "User address haven't been updated."},
+    },
+)
+@inject
+async def update_user_address(
+    address_id: int,
+    user_request: UpdateUserAddressRequest,
+    user: FromDishka[GetCurrentUserInteractor],
+    update_address: FromDishka[UpdateUserAddressInteractor],
+    request: Request
+):
+    user_dto = await user(request)
+    return await update_address(address_id, user_dto.id, user_request)
 
 
 @router.delete(

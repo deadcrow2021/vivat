@@ -1,4 +1,4 @@
-from src.domain.dto.user_address_dto import AddUserAddressRequest, AddUserAddressResponse, DeleteAddressResponse, GetUserAddress, GetUserAddressResponse
+from src.domain.dto.user_address_dto import AddUserAddressRequest, AddUserAddressResponse, DeleteAddressResponse, GetUserAddress, GetUserAddressResponse, UpdateUserAddressRequest, UpdateUserAddressResponse
 from src.application.exceptions import IdNotValidError
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import user_address_repository
@@ -55,6 +55,38 @@ class AddUserAddressInteractor:
         await self._transaction_manager.commit()
 
         return AddUserAddressResponse(
+            id=address.id,
+            address=address.address,
+            entrance=address.entrance,
+            floor=address.floor,
+            apartment=address.apartment,
+            is_primary=address.is_primary
+        )
+
+
+class UpdateUserAddressInteractor:
+    def __init__(
+        self,
+        user_address_repository: user_address_repository.IUserAddressRepository,
+        transaction_manager: ITransactionManager
+    ):
+        self._user_address_repository = user_address_repository
+        self._transaction_manager = transaction_manager
+
+    async def __call__(
+        self,
+        address_id: int,
+        user_id: int,
+        address_request: UpdateUserAddressRequest
+    ) -> UpdateUserAddressResponse:
+        if address_id < 1 or user_id < 1:
+            raise IdNotValidError
+
+        user_address = await self._user_address_repository.get_user_address_by_id(user_id, address_id)
+        address = await self._user_address_repository.update_user_address(user_address, address_request)
+        await self._transaction_manager.commit()
+
+        return UpdateUserAddressResponse(
             id=address.id,
             address=address.address,
             entrance=address.entrance,

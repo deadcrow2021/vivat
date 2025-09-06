@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from sqlalchemy import select, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
@@ -10,7 +10,7 @@ from src.infrastructure.exceptions import CityNotFoundError, RestaurantNotFoundE
 from src.application.interfaces.repositories.restaurant_repository import (
     IRestaurantRepository,
 )
-from src.infrastructure.drivers.db.tables import City, Feature, MenuCategory, Restaurant, WorkingHours
+from src.infrastructure.drivers.db.tables import City, Feature, MenuCategory, Order, Restaurant, User, WorkingHours
 from src.domain.dto.restaurant_dto import (
     AddRestaurantRequest,
     AddRestaurantResponse,
@@ -61,6 +61,30 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             raise
 
         return restaurant
+
+
+    async def get_restaurant_by_last_user_order(self, user_id: int) -> Optional[Restaurant]:
+        stmt = (
+            select(Restaurant)
+            .join(
+                Order,
+                Restaurant.id == Order.restaurant_id
+            )
+            .join(
+                User,
+                Order.user_id == User.id
+            )
+            .where(User.id == user_id)
+            .order_by(
+                Order.id.desc() # Latest order
+            )
+            .limit(1)
+        )
+        result = await self._session.execute(stmt)
+        restaurant = result.scalars().first()
+        
+        return restaurant
+
 
     async def get_city_restaurants(self, city: City) -> GetCityRestaurantsResponse:
         response = GetCityRestaurantsResponse()

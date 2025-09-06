@@ -7,7 +7,7 @@ from jose import JWTError, jwt
 from src.domain.dto.auth_dto import CreateUser, CreateUserResponse, CurrentUserDTO, LogOutResponse, LoginUserRequest, LoginUserResponse, LogInDTO, TokenResponse, UpdateUserResponse
 from src.application.exceptions import IdNotValidError, TokenError
 from src.application.interfaces.transaction_manager import ITransactionManager
-from src.application.interfaces.repositories import auth_repository
+from src.application.interfaces.repositories import auth_repository, user_address_repository, restaurant_repository
 from src.config import Config
 from src.logger import logger
 
@@ -38,21 +38,33 @@ class LoginUserInteractor:
     def __init__(
         self,
         auth_repository: auth_repository.IAuthRepository,
+        user_address_repository: user_address_repository.IUserAddressRepository,
+        restaurant_repository: restaurant_repository.IRestaurantRepository,
         transaction_manager: ITransactionManager,
         config: Config
     ):
         self._auth_repository = auth_repository
+        self._user_address_repository = user_address_repository
+        self._restaurant_repository = restaurant_repository
         self._transaction_manager = transaction_manager
         self._config = config
 
-    async def __call__(self, login_user_request: LoginUserRequest, response: Response) -> LoginUserResponse:
-        user_dto = await self._auth_repository.login_user(login_user_request, self._config)
+    async def __call__(
+        self,
+        login_user_request: LoginUserRequest,
+        response: Response
+        ) -> LoginUserResponse:
+        login_dto = await self._auth_repository.login_user(login_user_request, self._config)
+        user_dto = login_dto.user
+        
+        user_adress = await self._user_address_repository.get_primary_or_latest_address(user_dto.user_id)
+        restaurant_address = await self._restaurant_repository.get_restaurant_by_last_user_order(user_dto.user_id)
         await self._transaction_manager.commit()
 
         # Access Token
         response.set_cookie(
             key=self._config.token.access_token_cookie_key,
-            value=user_dto.access_token,
+            value=login_dto.access_token,
             httponly=True, # HttpOnly Cookie
             max_age=self._config.token.access_token_expire_minutes * 60,
             secure=_is_secure(self._config),
@@ -61,7 +73,7 @@ class LoginUserInteractor:
         # Refresh Token
         response.set_cookie(
             key=self._config.token.refresh_token_cookie_key,
-            value=user_dto.refresh_token,
+            value=login_dto.refresh_token,
             httponly=True, # HttpOnly Cookie
             max_age=self._config.token.refresh_token_expire_days * 24 * 3600,
             secure=_is_secure(self._config),
@@ -69,8 +81,10 @@ class LoginUserInteractor:
         )
 
         return LoginUserResponse(
-            id=user_dto.user.user_id,
-            phone=user_dto.user.phone
+            id=login_dto.user.user_id,
+            phone=login_dto.user.phone,
+            order_user_address_id=user_adress.id if user_adress else None,
+            order_restaurant_address_id=restaurant_address.id if restaurant_address else None
         )
 
 

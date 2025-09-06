@@ -5,6 +5,8 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, RootModel, field_validator
 
+from src.domain.mixins.phone_validator import PhoneValidatorMixin
+
 
 class RestaurantActionEnum(Enum):
     DELIVERY = "delivery"
@@ -31,7 +33,7 @@ class WorkingHoursModel(RootModel):
     root: Dict[DayShortName, HoursItem]
 
 
-class BaseRestaurantRequest(BaseModel):
+class BaseRestaurantRequest(PhoneValidatorMixin, BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
@@ -50,15 +52,6 @@ class BaseRestaurantRequest(BaseModel):
             raise ValueError("Invalid characters in name")
         if len(v.strip()) == 0:
             raise ValueError("Name cannot be empty")
-        return v
-
-    @field_validator("phone")
-    def validate_phone(cls, v: Optional[str]):
-        if v is None:
-            return v
-        pattern = r"^(\+7|7|8)?[\s\-]?\(?[0-9]{3}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$"
-        if not re.match(pattern, v):
-            raise ValueError("Invalid Russian phone number format")
         return v
 
     @field_validator("address")

@@ -3,6 +3,8 @@ from dishka import provide, Provider, Scope
 from src.application.interfaces.interactors.auth_interactor import GetCurrentUserInteractor, LoginUserInteractor, LogoutInteractor, RegisterUserInteractor, UpdateAccessTokenInteractor
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories.auth_repository import IAuthRepository
+from src.application.interfaces.repositories.user_address_repository import IUserAddressRepository
+from src.application.interfaces.repositories.restaurant_repository import IRestaurantRepository
 from src.config import Config
 
 
@@ -29,10 +31,18 @@ class AuthInteractorProvider(Provider):
     async def login_interactor(
         self,
         auth_repository: IAuthRepository,
+        user_address_repository: IUserAddressRepository,
+        restaurant_repository: IRestaurantRepository,
         transaction_manager: ITransactionManager,
         config: Config
     ) -> LoginUserInteractor:
-        return LoginUserInteractor(auth_repository, transaction_manager, config)
+        return LoginUserInteractor(
+            auth_repository,
+            user_address_repository,
+            restaurant_repository,
+            transaction_manager,
+            config
+        )
 
     @provide(scope=Scope.REQUEST)
     async def update_token_interactor(

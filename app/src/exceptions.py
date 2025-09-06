@@ -22,9 +22,9 @@ def register_exception_handlers(app: FastAPI) -> None:
                 "message": error["msg"],
                 "type": error["type"],
             })
-        
+
         return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,  # или 400, если предпочитаете
+            status_code=status.HTTP_400_BAD_REQUEST,
             content={
                 "detail": "Validation error",
                 "errors": errors,

@@ -62,7 +62,8 @@ class LoginUserRequest(BaseUserRequest):
     pass
 
 class LoginUserResponse(BaseUserResponse):
-    pass
+    order_user_address_id: Optional[int] = None
+    order_restaurant_address_id: Optional[int] = None
 
 
 class TokenResponse(BaseModel):

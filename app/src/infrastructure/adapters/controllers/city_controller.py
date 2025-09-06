@@ -59,7 +59,7 @@ async def add_city(
 
 
 @router.patch(
-    "/",
+    "/{city_id}",
     status_code=status.HTTP_200_OK,
     response_model=AddCityResponse,
     responses={

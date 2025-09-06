@@ -1,5 +1,4 @@
 from datetime import datetime, time
-from enum import Enum
 from typing import Optional
 
 from sqlalchemy import (
@@ -21,15 +20,9 @@ from sqlalchemy_utils import PhoneNumberType, EmailType
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, InvalidHashError
 
+from src.domain.dto.order_dto import OrderAction, OrderStatus
 from src.infrastructure.drivers.db.base import Base
 from src.config import ArgonConfig
-
-
-class OrderAction(Enum):
-    UNKNOWN = "unknown"
-    DELIVERY = "delivery"
-    TAKEAWAY = "takeaway"
-    INSIDE = "inside"
 
 
 # Для добавленных ингредиентов
@@ -347,8 +340,17 @@ class Order(Base):
         nullable=False,
         default=OrderAction.UNKNOWN
     )
+    status: Mapped[OrderStatus] = mapped_column(
+        SQLEnum(
+            OrderStatus,
+            createnative_enum=True,
+            name="order_status_enum",
+            values_callable=lambda x: [e.value for e in x]
+        ),
+        nullable=False,
+        default=OrderStatus.CREATED
+    )
     total_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    status: Mapped[str] = mapped_column(String(100), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
 
@@ -374,7 +376,8 @@ class OrderItem(Base):
     order_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("order.id", ondelete="CASCADE")
     )
-    final_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    final_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False) # price for one item with addings
 
     # Связи
     food_variant: Mapped["FoodVariant"] = relationship(back_populates="order_item")
@@ -450,8 +453,8 @@ class UserAddress(Base):
     entrance: Mapped[str] = mapped_column(String(20))
     floor: Mapped[int] = mapped_column(SmallInteger)
     apartment: Mapped[str] = mapped_column(String(20))
-    is_primary: Mapped[bool] = mapped_column(Boolean, default=True)
-    is_removed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_removed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False) # TODO: возможно добавить логику
 
     # Связи
     user: Mapped["User"] = relationship("User", back_populates="addresses")

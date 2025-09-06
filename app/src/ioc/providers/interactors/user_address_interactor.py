@@ -1,6 +1,6 @@
 from dishka import provide, Provider, Scope
 
-from src.application.interfaces.interactors.user_address_interactor import AddUserAddressInteractor, DeleteAddressInteractor, GetUserAddressInteractor
+from src.application.interfaces.interactors.user_address_interactor import AddUserAddressInteractor, DeleteAddressInteractor, GetUserAddressInteractor, UpdateUserAddressInteractor
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories.user_address_repository import IUserAddressRepository
 
@@ -20,6 +20,14 @@ class UserAddressInteractorProvider(Provider):
         transaction_manager: ITransactionManager,
     ) -> AddUserAddressInteractor:
         return AddUserAddressInteractor(user_address_repository, transaction_manager)
+
+    @provide(scope=Scope.REQUEST)
+    async def update_user_address_interactor(
+        self,
+        user_address_repository: IUserAddressRepository,
+        transaction_manager: ITransactionManager,
+    ) -> UpdateUserAddressInteractor:
+        return UpdateUserAddressInteractor(user_address_repository, transaction_manager)
 
     @provide(scope=Scope.REQUEST)
     async def delete_user_address_interactor(
