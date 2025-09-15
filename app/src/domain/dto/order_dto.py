@@ -4,6 +4,7 @@ from enum import Enum
 import re
 from typing import List, Optional
 
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, field_validator
 
 from src.domain.mixins.phone_validator import PhoneValidatorMixin
@@ -35,9 +36,9 @@ class OrderedPosition(BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise ValueError("Invalid characters in name")
+            raise RequestValidationError("Invalid characters in name")
         if len(v.strip()) == 0:
-            raise ValueError("Name cannot be empty")
+            raise RequestValidationError("Name cannot be empty")
         return v
 
     @field_validator("quantity")
@@ -45,7 +46,7 @@ class OrderedPosition(BaseModel):
         if v is None:
             return v
         if v < 1 or v > 19: # TODO: Спросить
-            raise ValueError("Quantity must be greater than 0 or lower than 99")
+            raise RequestValidationError("Quantity must be greater than 0 or lower than 99")
         return v
 
     @field_validator('addings')
@@ -55,9 +56,9 @@ class OrderedPosition(BaseModel):
         if isinstance(v, list):
             for item in v:
                 if item < 1:
-                    raise ValueError('Addings id must be greater than 0')
+                    raise RequestValidationError('Addings id must be greater than 0')
         else:
-            raise ValueError('Addings must be a list')
+            raise RequestValidationError('Addings must be a list')
         return v
 
     @field_validator('removed_ingredients')
@@ -67,9 +68,9 @@ class OrderedPosition(BaseModel):
         if isinstance(v, list):
             for item in v:
                 if item < 1:
-                    raise ValueError('Removed ingridients id must be greater than 0')
+                    raise RequestValidationError('Removed ingridients id must be greater than 0')
         else:
-            raise ValueError('Removed ingridients must be a list')
+            raise RequestValidationError('Removed ingridients must be a list')
         return v
 
 
@@ -85,9 +86,9 @@ class SelectedRestaurant(PhoneValidatorMixin, BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise ValueError("Invalid characters in address")
+            raise RequestValidationError("Invalid characters in address")
         if len(v.strip()) == 0:
-            raise ValueError("Address cannot be empty")
+            raise RequestValidationError("Address cannot be empty")
         return v
 
 
@@ -99,7 +100,7 @@ class UserInfo(BaseModel):
         if v is None:
             return v
         if v < 1:
-            raise ValueError("Id must be greater than 0 or lower than 99")
+            raise RequestValidationError("Id must be greater than 0 or lower than 99")
         return v
 
 class OrderRequest(BaseModel):
@@ -115,21 +116,21 @@ class OrderRequest(BaseModel):
         if v is None:
             return v
         if v < 1 or v > 99:
-            raise ValueError("Order quantity must be greater than 0 or lower than 99")
+            raise RequestValidationError("Order quantity must be greater than 0 or lower than 99")
         return v
 
     @field_validator("cook_start")
     def validate_cook_start(cls, v):
         # Проверяем формат времени HH:MM
         if not re.match(r'^([01]\d|2[0-3]):[0-5]\d$', v):
-            raise ValueError('cook_start должен быть в формате HH:MM')
+            raise RequestValidationError('cook_start должен быть в формате HH:MM')
         return v
 
     @field_validator('payment_method')
     def validate_payment_method(cls, v):
         # Проверяем допустимые методы оплаты
         if v not in ['cash', 'card']:
-            raise ValueError('payment_method должен быть "cash" или "card"')
+            raise RequestValidationError('payment_method должен быть "cash" или "card"')
         return v
 
 

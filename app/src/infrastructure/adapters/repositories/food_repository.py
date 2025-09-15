@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.infrastructure.exceptions import FoodNotFoundError, MenuCategoryNotFoundError
 from src.domain.dto.food_dto import AddFoodRequest
 from src.infrastructure.drivers.db.tables import Food, MenuCategory
 from src.application.interfaces.repositories.food_repository import IFoodRepository
@@ -10,9 +11,18 @@ class FoodRepository(IFoodRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_by_id(self, food_id: int):
-        return {"id": 123}
-        # return await self._session.get(User, user_id)
+    async def get_food_by_id(self, food_id: int) -> Food:
+        stmt = (
+            select(Food)
+            .where(Food.id == food_id)
+        )
+        result = await self._session.execute(stmt)
+        food = result.scalars().first()
+
+        if not food:
+            raise FoodNotFoundError(id=food_id)
+
+        return food
 
 
     async def add_food_to_category(
@@ -28,7 +38,7 @@ class FoodRepository(IFoodRepository):
         menu_category = result.scalars().one_or_none()
 
         if not menu_category:
-            raise ValueError("Menu category not found")
+            raise MenuCategoryNotFoundError(id=menu_category_id)
 
         new_food = Food(
             category_id=menu_category.id,

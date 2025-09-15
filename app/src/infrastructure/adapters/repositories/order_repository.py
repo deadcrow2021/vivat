@@ -5,9 +5,9 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.exceptions import RestaurantNotFoundError
-from src.domain.dto.order_dto import OrderRequest, RestaurantAction
+from src.domain.dto.order_dto import OrderRequest, OrderAction, OrderStatus
 from src.application.interfaces.repositories.order_repository import IOrderRepository
-from src.infrastructure.drivers.db.tables import Food, FoodIngredientAssociation, FoodVariant, Ingredient, Order, OrderItem, OrderStatus, User, Restaurant, UserAddress
+from src.infrastructure.drivers.db.tables import Food, FoodIngredientAssociation, FoodVariant, Ingredient, Order, OrderItem, User, Restaurant, UserAddress
 
 
 class OrderRepository(IOrderRepository):
@@ -224,12 +224,12 @@ class OrderRepository(IOrderRepository):
         return new_order
 
 
-    def _has_action(restaurant: Restaurant, restaurant_action: RestaurantAction) -> bool:
-        if RestaurantAction.DELIVERY == restaurant_action and restaurant.has_delivery:
+    def _has_action(restaurant: Restaurant, restaurant_action: OrderAction) -> bool:
+        if OrderAction.DELIVERY == restaurant_action and restaurant.has_delivery:
             return True
-        if RestaurantAction.INSIDE == restaurant_action and restaurant.has_dine_in:
+        if OrderAction.INSIDE == restaurant_action and restaurant.has_dine_in:
             return True
-        if RestaurantAction.TAKEAWAY == restaurant_action and restaurant.has_takeaway:
+        if OrderAction.TAKEAWAY == restaurant_action and restaurant.has_takeaway:
             return True
 
         return False

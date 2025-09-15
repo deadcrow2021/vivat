@@ -7,7 +7,7 @@ from src.infrastructure.drivers.db.tables import Food
 
 class IFoodRepository(Protocol):
     @abstractmethod
-    async def get_by_id(self, food_id: int):
+    async def get_food_by_id(self, food_id: int) -> Food:
         raise NotImplementedError
 
     @abstractmethod
@@ -15,5 +15,5 @@ class IFoodRepository(Protocol):
         self,
         menu_category_id: int,
         food_request: AddFoodRequest
-        ) -> Food:
+    ) -> Food:
         raise NotImplementedError

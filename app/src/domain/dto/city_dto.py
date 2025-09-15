@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
+from fastapi.exceptions import RequestValidationError
 
 
 class BaseCityRequest(BaseModel):
@@ -13,9 +14,9 @@ class BaseCityRequest(BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise ValueError("Invalid characters in name")
+            raise RequestValidationError("Invalid characters in name")
         if len(v.strip()) == 0:
-            raise ValueError("Name cannot be empty")
+            raise RequestValidationError("Name cannot be empty")
         return v
 
     @field_validator("latitude")
@@ -23,7 +24,7 @@ class BaseCityRequest(BaseModel):
         if v is None:
             return v
         if not (-90 <= v <= 90):
-            raise ValueError("Latitude must be between -90 and 90")
+            raise RequestValidationError("Latitude must be between -90 and 90")
         return v
 
     @field_validator("longitude")
@@ -31,7 +32,7 @@ class BaseCityRequest(BaseModel):
         if v is None:
             return v
         if not (-180 <= v <= 180):
-            raise ValueError("Longitude must be between -180 and 180")
+            raise RequestValidationError("Longitude must be between -180 and 180")
         return v
 
 

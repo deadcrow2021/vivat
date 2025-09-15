@@ -1,6 +1,8 @@
 from typing import List, Optional
 
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, field_validator
+
 
 class BaseFeatureRequest(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
@@ -11,9 +13,22 @@ class BaseFeatureRequest(BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise ValueError("Invalid characters in name")
+            raise RequestValidationError("Invalid characters in name")
         if len(v.strip()) == 0:
-            raise ValueError("Name cannot be empty")
+            raise RequestValidationError("Name cannot be empty")
+        return v
+
+    @field_validator("icon_url")
+    def validate_file_path(cls, v: str):
+        if any(char in v for char in ["'", '"', ";", "--"]):
+            raise RequestValidationError("Invalid characters in url")
+        # Проверяем, что строка содержит хотя бы один разделитель пути (/ или \)
+        if not any(separator in v for separator in ("/", "\\")):
+            raise RequestValidationError("Invalid file path format - must contain / or \\")
+        
+        # Проверяем отсутствие опасных символов
+        if any(char in v for char in ["<", ">", ":", "|", "?", "*"]):
+            raise RequestValidationError("Invalid characters in file path")
         return v
 
 class BaseFeatureResponse(BaseModel):

@@ -7,14 +7,14 @@ from src.application.interfaces.repositories.ingredient_repository import IIngre
 
 class IngredientInteractorProvider(Provider):
     @provide(scope=Scope.REQUEST)
-    async def get_ingredient_interactor(
+    async def get_ingredients_interactor(
         self,
         ingredient_repository: IIngredientRepository
     ) -> GetAllIngredientsInteractor:
         return GetAllIngredientsInteractor(ingredient_repository)
 
     @provide(scope=Scope.REQUEST)
-    async def get_ingredient_interactor(
+    async def get_all_default_category_ingredients_interactor(
         self,
         ingredient_repository: IIngredientRepository
     ) -> GetMenuCategoryIngredientsInteractor:

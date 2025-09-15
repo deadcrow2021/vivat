@@ -3,11 +3,12 @@ from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.infrastructure.exceptions import IngredientsNotFoundError
 from src.application.interfaces.repositories.ingredient_repository import IIngredientRepository
 from src.infrastructure.drivers.db.tables import Food, FoodIngredientAssociation, Ingredient
 
 
-class IngredientRepository(IIngredientRepository): # TODO: add exceptions
+class IngredientRepository(IIngredientRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
@@ -38,5 +39,8 @@ class IngredientRepository(IIngredientRepository): # TODO: add exceptions
         )
         stmt_result = await self._session.execute(stmt)
         ingredients = stmt_result.scalars().all()
+
+        if not ingredients:
+            raise IngredientsNotFoundError("Ingredients not found")
 
         return ingredients

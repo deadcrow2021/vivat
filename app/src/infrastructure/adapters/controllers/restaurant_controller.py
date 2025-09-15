@@ -37,11 +37,7 @@ async def get_restaurant_by_id(
     restaurant_id: int,
     get_restaurant: FromDishka[GetRestaurantInteractor]
 ):
-    try:
-        return await get_restaurant(restaurant_id)
-    except Exception as e:
-        logger.exception(f"Get restaurant controller error. Unexpected error: {e}")
-        raise HTTPException(status_code=500, detail=f'Unexpected Get restaurant controller error: {e}')
+    return await get_restaurant(restaurant_id)
 
 
 @router.get(
@@ -57,11 +53,7 @@ async def get_restaurant_by_city_id(
     city_id: int,
     get_city_restaurants: FromDishka[GetCityRestaurantsInteractor]
 ):
-    try:
-        return await get_city_restaurants(city_id)
-    except Exception as e:
-        logger.exception(f"Get city restaurants controller error. Unexpected error: {e}")
-        raise HTTPException(status_code=500, detail=f'Unexpected Get city restaurants controller error: {e}')
+    return await get_city_restaurants(city_id)
 
 
 @router.post(

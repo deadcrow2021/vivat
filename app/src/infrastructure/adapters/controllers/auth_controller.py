@@ -3,7 +3,6 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from starlette import status
 
-from src.domain.dto.order_dto import RestaurantAction
 from src.application.interfaces.interactors.auth_interactor import GetCurrentUserInteractor, LoginUserInteractor, LogoutInteractor, RegisterUserInteractor, UpdateAccessTokenInteractor
 from src.domain.dto.auth_dto import CreateUser, CreateUserResponse, CurrentUserDTO, LogOutResponse, LoginUserRequest, LogInDTO, LoginUserResponse, TokenResponse, UpdateUserResponse
 
@@ -86,12 +85,3 @@ async def logout(
     response: Response
 ):
     return await logout_(request, response)
-
-
-# @router.get("/test")
-# @inject
-# async def get_current_user(
-#     action: RestaurantAction
-# ):
-    
-#     return {'test': 123}

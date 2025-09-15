@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -55,13 +56,13 @@ class AddCategoryToRestaurantRequest(BaseModel):
     @field_validator("restaurant_id")
     def check_restaurant_id(cls, value: int) -> int:
         if value < 1:
-            raise ValueError("Restaurant id must be greater than 0")
+            raise RequestValidationError("Restaurant id must be greater than 0")
         return value
 
     @field_validator("category_id")
     def check_category_id(cls, value: int) -> int:
         if value < 1:
-            raise ValueError("Category id must be greater than 0")
+            raise RequestValidationError("Category id must be greater than 0")
         return value
 
 
@@ -75,11 +76,11 @@ class AddMenuCategoryRequest(BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise ValueError("Invalid characters in name")
+            raise RequestValidationError("Invalid characters in name")
         if len(v.strip()) == 0:
-            raise ValueError("Name cannot be empty")
+            raise RequestValidationError("Name cannot be empty")
         if len(v) < 3:
-            raise ValueError("Category name must be at least 3 characters long")
+            raise RequestValidationError("Category name must be at least 3 characters long")
         return v
 
 

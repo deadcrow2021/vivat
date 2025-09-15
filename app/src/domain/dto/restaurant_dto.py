@@ -3,6 +3,7 @@ from enum import Enum
 import re
 from typing import Dict, List, Optional
 
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, RootModel, field_validator
 
 from src.domain.mixins.phone_validator import PhoneValidatorMixin
@@ -49,9 +50,9 @@ class BaseRestaurantRequest(PhoneValidatorMixin, BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise ValueError("Invalid characters in name")
+            raise RequestValidationError("Invalid characters in name")
         if len(v.strip()) == 0:
-            raise ValueError("Name cannot be empty")
+            raise RequestValidationError("Name cannot be empty")
         return v
 
     @field_validator("address")
@@ -59,7 +60,7 @@ class BaseRestaurantRequest(PhoneValidatorMixin, BaseModel):
         if v is None:
             return v
         if len(v.strip()) == 0:
-            raise ValueError("Address cannot be empty")
+            raise RequestValidationError("Address cannot be empty")
         return v
 
     @field_validator("latitude")
@@ -67,7 +68,7 @@ class BaseRestaurantRequest(PhoneValidatorMixin, BaseModel):
         if v is None:
             return v
         if not (-90 <= v <= 90):
-            raise ValueError("Latitude must be between -90 and 90")
+            raise RequestValidationError("Latitude must be between -90 and 90")
         return v
 
     @field_validator("longitude")
@@ -75,7 +76,7 @@ class BaseRestaurantRequest(PhoneValidatorMixin, BaseModel):
         if v is None:
             return v
         if not (-180 <= v <= 180):
-            raise ValueError("Longitude must be between -180 and 180")
+            raise RequestValidationError("Longitude must be between -180 and 180")
         return v
 
 
@@ -160,9 +161,9 @@ class UpdateRestaurantRequest(BaseRestaurantRequest):
                 opens = datetime.strptime(hours.from_, "%H:%M").time()
                 closes = datetime.strptime(hours.to, "%H:%M").time()
                 if opens >= closes:
-                    raise ValueError(f"Opening time must be before closing time for {day}")
-            except ValueError as e:
-                raise ValueError(f"Invalid time format for {day}: {str(e)}")
+                    raise RequestValidationError(f"Opening time must be before closing time for {day}")
+            except RequestValidationError as e:
+                raise RequestValidationError(f"Invalid time format for {day}: {str(e)}")
         
         return v
 
@@ -172,15 +173,15 @@ class UpdateRestaurantRequest(BaseRestaurantRequest):
             return v
         
         if len(v) != len(set(v)):
-            raise ValueError("Feature names must be unique")
+            raise RequestValidationError("Feature names must be unique")
         
         for feature in v:
             if not feature.strip():
-                raise ValueError("Feature name cannot be empty")
+                raise RequestValidationError("Feature name cannot be empty")
             if len(feature) > 100:
-                raise ValueError("Feature name is too long (max 100 chars)")
+                raise RequestValidationError("Feature name is too long (max 100 chars)")
             if any(char in feature for char in ["'", '"', ";", "--"]):
-                raise ValueError("Invalid characters in feature name")
+                raise RequestValidationError("Invalid characters in feature name")
         
         return v
 

@@ -18,6 +18,33 @@ class FeatureNotFoundError(InfrastructureError):
         super().__init__(msg)
 
 
+class IngredientsNotFoundError(InfrastructureError):
+    def __init__(self, id: int = None) -> None:
+        if id:
+            msg = f"Cannot find ingredient with id: {id}"
+        else:
+            msg = "Cannot find any ingredients"
+        super().__init__(msg)
+
+
+class FoodNotFoundError(InfrastructureError):
+    def __init__(self, id: int = None) -> None:
+        if id:
+            msg = f"Cannot find food with id: {id}"
+        else:
+            msg = "Cannot find any food"
+        super().__init__(msg)
+
+
+class MenuCategoryNotFoundError(InfrastructureError):
+    def __init__(self, id: int = None) -> None:
+        if id:
+            msg = f"Cannot find menu category with id: {id}"
+        else:
+            msg = "Cannot find any menu category"
+        super().__init__(msg)
+
+
 class CityNotFoundError(InfrastructureError):
     def __init__(self, id: int = None) -> None:
         if id:
@@ -50,5 +77,10 @@ class UserExistsError(InfrastructureError):
 
 
 class VariantNotFoundError(InfrastructureError):
-    def __init__(self, id: int) -> None:
-        super().__init__(f"Variant with id {id} already exists")
+    def __init__(self, id: int = None) -> None:
+        if id:
+            msg = f"Cannot find variant with id: {id}"
+        else:
+            msg = "Cannot find any variant"
+        super().__init__(msg)
+

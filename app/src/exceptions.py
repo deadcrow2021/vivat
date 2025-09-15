@@ -10,25 +10,19 @@ from src.infrastructure import exceptions as infra_exc
 
 def register_exception_handlers(app: FastAPI) -> None:
     # FASTAPI EXCEPTION HANDLERS
-
-    # Обработчик для ошибок валидации Pydantic (RequestValidationError)
-    @app.exception_handler(RequestValidationError)
-    async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
-        errors = []
-        for error in exc.errors():
-            # field = "->".join(str(loc) for loc in error["loc"])  # "body->name", "query->latitude" и т.д.
-            errors.append({
-                "field": error["loc"][1],
-                "message": error["msg"],
-                "type": error["type"],
-            })
-
+    
+    @app.exception_handler(ValueError)
+    async def value_exception_handler(request: Request, exc: ValueError):
         return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "detail": "Validation error",
-                "errors": errors,
-            },
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": str(exc)},
+        )
+
+    @app.exception_handler(app_exc.UnhandledException)
+    async def general_exception_handler(request: Request, exc: Exception):
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": f'Unhandled exception: {exc}'},
         )
 
     # INFRASTRUCTURE EXCEPTION HANDLERS
@@ -61,6 +55,27 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={"detail": str(exc)},
         )
 
+    @app.exception_handler(infra_exc.FoodNotFoundError)
+    async def food_not_found_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": str(exc)},
+        )
+
+    @app.exception_handler(infra_exc.IngredientsNotFoundError)
+    async def ingredients_not_found_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": str(exc)},
+        )
+
+    @app.exception_handler(infra_exc.MenuCategoryNotFoundError)
+    async def menu_category_not_found_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": str(exc)},
+        )
+
     @app.exception_handler(infra_exc.UserNotFoundError)
     async def user_not_found_handler(_: Request, exc: Exception) -> JSONResponse:
         return JSONResponse(
@@ -84,6 +99,13 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     # APPLICATION EXCEPTION HANDLERS
 
+    @app.exception_handler(app_exc.DatabaseException)
+    async def database_error_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": str(exc)},
+        )
+
     @app.exception_handler(app_exc.IdNotValidError)
     async def id_not_valid_handler(_: Request, __: Exception) -> JSONResponse:
         return JSONResponse(
@@ -99,3 +121,23 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     # DOMAIN EXCEPTION HANDLERS
+
+    # Обработчик для ошибок валидации Pydantic (RequestValidationError)
+    @app.exception_handler(RequestValidationError)
+    async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+        errors = exc.errors()
+        messages = []
+        
+        if isinstance(errors, str):
+            messages = [errors]
+        else:
+            for err in errors:
+                _, field = err.get('loc')
+                err_msg = err.get('msg')
+                msg = f'{err_msg} - {field}'
+                messages.append(msg)
+    
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={"detail": ' | '.join(messages)},
+        )

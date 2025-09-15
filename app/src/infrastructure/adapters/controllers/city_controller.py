@@ -10,7 +10,7 @@ from src.domain.dto.city_dto import AddCityRequest, AddCityResponse, DeleteCityR
 
 router = APIRouter(prefix="/city", tags=["City"])
 
-# TODO: add exceptions
+
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/city", tags=["City"])
     },
 )
 @inject
-async def get_city(
+async def get_cities(
     get_cities: FromDishka[GetAllCitiesInteractor]
 ):
     return await get_cities()
@@ -42,50 +42,73 @@ async def get_city_by_id(
     return await get_city(city_id)
 
 
-@router.post(
-    "/",
-    status_code=status.HTTP_200_OK,
-    response_model=AddCityResponse,
-    responses={
-        status.HTTP_400_BAD_REQUEST: {"error": "City haven't been created."},
-    },
-)
-@inject
-async def add_city(
-    city_request: AddCityRequest,
-    add_city: FromDishka[AddCityInteractor]
-):
-    return await add_city(city_request)
+# TODO: нужна проверка на роль админа
+# @router.post(
+#     "/",
+#     status_code=status.HTTP_200_OK,
+#     response_model=AddCityResponse,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"error": "City haven't been created."},
+#     },
+# )
+# @inject
+# async def add_city(
+#     city_request: AddCityRequest,
+#     add_city: FromDishka[AddCityInteractor]
+# ):
+#     return await add_city(city_request)
 
 
-@router.patch(
-    "/{city_id}",
-    status_code=status.HTTP_200_OK,
-    response_model=AddCityResponse,
-    responses={
-        status.HTTP_400_BAD_REQUEST: {"error": "City haven't been changed."},
-    },
-)
-@inject
-async def update_city(
-    city_id: int,
-    city_request: UpdateCityRequest,
-    update_city: FromDishka[UpdateCityInteractor]
-):
-    return await update_city(city_id, city_request)
+# TODO: нужна проверка на роль админа
+# @router.patch(
+#     "/{city_id}",
+#     status_code=status.HTTP_200_OK,
+#     response_model=AddCityResponse,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"error": "City haven't been changed."},
+#     },
+# )
+# @inject
+# async def update_city(
+#     city_id: int,
+#     city_request: UpdateCityRequest,
+#     update_city: FromDishka[UpdateCityInteractor]
+# ):
+#     return await update_city(city_id, city_request)
 
 
-@router.delete(
-    "/",
-    status_code=status.HTTP_200_OK,
-    response_model=DeleteCityResponse,
-    responses={
-        status.HTTP_400_BAD_REQUEST: {"error": "City haven't been deleted."},
-    },
-)
-@inject
-async def delete_city(
-    city_id: int,
-    delete_city: FromDishka[DeleteCityInteractor]
-):
-    return await delete_city(city_id)
+# TODO: нужна проверка на роль админа
+# @router.delete(
+#     "/",
+#     status_code=status.HTTP_200_OK,
+#     response_model=DeleteCityResponse,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"error": "City haven't been deleted."},
+#     },
+# )
+# @inject
+# async def delete_city(
+#     city_id: int,
+#     delete_city: FromDishka[DeleteCityInteractor]
+# ):
+#     return await delete_city(city_id)
+
+
+# @router.get(
+#     "/test/",
+#     status_code=status.HTTP_200_OK,
+#     # response_model=DeleteCityResponse,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"error": "123"},
+#     },
+# )
+# @inject
+# async def test():
+#     from src.application.exceptions import DatabaseException
+#     from sqlalchemy.exc import SQLAlchemyError
+#     try:
+#         raise ValueError('pizda')
+#     except ValueError as exc:
+#         raise ValueError('huy') from exc
+        
+    # return AddCityRequest(name=' ', latitude=100, longitude=100)

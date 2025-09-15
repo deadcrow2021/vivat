@@ -63,9 +63,9 @@ def create_application() -> FastAPI:
 
     container: AsyncContainer = create_container()
     setup_dishka(container, app)
-    setup_routers(app)
     setup_middlewares(app, config)
     register_exception_handlers(app)
+    setup_routers(app)
 
     return app
 

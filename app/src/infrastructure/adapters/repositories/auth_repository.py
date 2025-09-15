@@ -30,11 +30,9 @@ class AuthRepository(IAuthRepository):
 
     async def register_user(self, created_user: CreateUser, config: Config) -> User:
         self._raise_if_user_exists_by_phone(created_user)
-        # self._raise_if_user_exists_by_email(created_user)
 
         user = User(
-            phone=created_user.phone,
-            # email=created_user.email,
+            phone=created_user.phone
         )
         user.set_password(created_user.password, config.argon2)
 
@@ -180,14 +178,6 @@ class AuthRepository(IAuthRepository):
         if user:
             raise UserExistsError(created_user.phone)
 
-
-    # async def _raise_if_user_exists_by_email(self, created_user: CreateUser) -> None:
-    #     user_email_query = select(User).filter(User.email == created_user.email)
-    #     user_result = await self._session.execute(user_email_query)
-    #     user = user_result.scalars().first()
-
-    #     if user:
-    #         raise UserExistsError(created_user.phone)\
 
     def _create_token(self, config: TokenConfig, data: dict, expires_delta: timedelta) -> str:
         to_encode = data.copy()

@@ -14,18 +14,18 @@ from src.application.interfaces.interactors.food_characteristic_interactor impor
 
 router = APIRouter(prefix="/food_characteristic", tags=["Food Characteristic"])
 
-# TODO: add exceptions
-@router.post(
-    "/",
-    status_code=status.HTTP_201_CREATED,
-    response_model=AddCharacteristicsToVariantResponse,
-    responses={
-        status.HTTP_404_NOT_FOUND: {"error": "Cannot add characteristics to variant."},
-    },
-)
-@inject
-async def add_char_to_variant(
-    add_char_request: AddCharacteristicsToVariantRequest,
-    add_char: FromDishka[AddCharacteristicsToVariantInteractor]
-):
-    return add_char(add_char_request)
+# TODO: нужна проверка на роль админа
+# @router.post(
+#     "/",
+#     status_code=status.HTTP_201_CREATED,
+#     response_model=AddCharacteristicsToVariantResponse,
+#     responses={
+#         status.HTTP_404_NOT_FOUND: {"error": "Cannot add characteristics to variant."},
+#     },
+# )
+# @inject
+# async def add_char_to_variant(
+#     add_char_request: AddCharacteristicsToVariantRequest,
+#     add_char: FromDishka[AddCharacteristicsToVariantInteractor]
+# ):
+#     return await add_char(add_char_request)

@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -14,27 +15,27 @@ class BaseUserAddressRequest(BaseModel):
     def address_validator(cls, v):
         txt_len = len(v.strip())
         if txt_len < 1 or txt_len > 1000:
-            raise ValueError("Address must be between 1 and 1000 characters")
+            raise RequestValidationError("Address must be between 1 and 1000 characters")
         return v
 
     @field_validator("entrance")
     def entrance_validator(cls, v):
         txt_len = len(v.strip())
         if txt_len < 1 or txt_len > 20:
-            raise ValueError("Entrance must be between 1 and 20 characters")
+            raise RequestValidationError("Entrance must be between 1 and 20 characters")
         return v
 
     @field_validator("floor")
     def floor_must_be_positive(cls, v):
         if v < 0 or v > 500:
-            raise ValueError("Floor must be positive")
+            raise RequestValidationError("Floor must be positive")
         return v
 
     @field_validator("apartment")
     def entrance_validator(cls, v):
         txt_len = len(v.strip())
         if txt_len < 1 or txt_len > 20:
-            raise ValueError("Apartment must be between 1 and 1000 characters")
+            raise RequestValidationError("Apartment must be between 1 and 1000 characters")
         return v
 
 
