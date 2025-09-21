@@ -13,7 +13,7 @@ class AddCharacteristicsToVariantRequest(BaseModel):
         if v is None:
             return v
         if v < 1:
-            raise RequestValidationError("Variant id must be greater than 0")
+            raise RequestValidationError("Id варианта блюда не может быть меньше 1")
         return v
 
     @field_validator("characteristic_value")
@@ -21,9 +21,9 @@ class AddCharacteristicsToVariantRequest(BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
+            raise RequestValidationError("Недопустимые символы в значении характеристики")
         if len(v.strip()) == 0:
-            raise RequestValidationError("Name cannot be empty")
+            raise RequestValidationError("Значение характеристики не может быть пустым")
         return v
 
 

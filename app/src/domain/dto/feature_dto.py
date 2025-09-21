@@ -8,27 +8,25 @@ class BaseFeatureRequest(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
     icon_url: Optional[str] = Field(None, max_length=2000)
 
-    @field_validator("name", "icon_url")
+    @field_validator("name")
     def validate_name(cls, v: Optional[str]):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
+            raise RequestValidationError("Недопустимые символы в названии")
         if len(v.strip()) == 0:
-            raise RequestValidationError("Name cannot be empty")
+            raise RequestValidationError("Название не может быть пустым")
         return v
 
     @field_validator("icon_url")
     def validate_file_path(cls, v: str):
-        if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in url")
         # Проверяем, что строка содержит хотя бы один разделитель пути (/ или \)
         if not any(separator in v for separator in ("/", "\\")):
-            raise RequestValidationError("Invalid file path format - must contain / or \\")
+            raise RequestValidationError("Недопустимый формат пути к файлу - должен содержать / или \\")
         
         # Проверяем отсутствие опасных символов
-        if any(char in v for char in ["<", ">", ":", "|", "?", "*"]):
-            raise RequestValidationError("Invalid characters in file path")
+        if any(char in v for char in ["<", ">", ":", "|", "?", "*", "'", '"', ";", "--"]):
+            raise RequestValidationError("Недопустимые символы в пути к файлу")
         return v
 
 class BaseFeatureResponse(BaseModel):

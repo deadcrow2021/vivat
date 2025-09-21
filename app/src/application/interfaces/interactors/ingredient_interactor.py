@@ -27,7 +27,7 @@ class GetAllIngredientsInteractor:
                 for ingredient in ingredients
             ]
         except SQLAlchemyError:
-            raise DatabaseException("Failed to get all ingredients in db")
+            raise DatabaseException("Не удалось получить все ингредиенты в БД")
 
 
 class GetMenuCategoryIngredientsInteractor:
@@ -53,4 +53,4 @@ class GetMenuCategoryIngredientsInteractor:
             ]
         
         except SQLAlchemyError:
-            raise DatabaseException("Failed to get all food ingredients from menu category in db")
+            raise DatabaseException("Не удалось получить все ингредиенты из категории меню в БД")

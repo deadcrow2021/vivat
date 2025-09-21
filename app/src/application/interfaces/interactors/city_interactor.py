@@ -26,7 +26,7 @@ class GetAllCitiesInteractor:
             return GetAllCitiesResponse(data=data)
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to get all cities in db")
+            raise DatabaseException("Не удалось получить все города из базы данных")
 
 
 class GetCityInteractor:
@@ -49,7 +49,7 @@ class GetCityInteractor:
             )
         
         except SQLAlchemyError:
-            raise DatabaseException("Failed to get city in db")
+            raise DatabaseException("Не удалось получить город из базы данных")
 
 
 class AddCityInteractor:
@@ -72,7 +72,7 @@ class AddCityInteractor:
             )
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to add city in db")
+            raise DatabaseException("Не удалось добавить город в базу данных")
 
 
 class UpdateCityInteractor:
@@ -99,7 +99,7 @@ class UpdateCityInteractor:
             )
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to update city in db")
+            raise DatabaseException("Не удалось обновить город в базе данных")
 
 
 class DeleteCityInteractor:
@@ -121,4 +121,4 @@ class DeleteCityInteractor:
             return delete_city_response
     
         except SQLAlchemyError:
-            raise DatabaseException("Failed to delete city in db")
+            raise DatabaseException("Не удалось удалить город из базы данных")

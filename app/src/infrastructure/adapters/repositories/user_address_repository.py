@@ -3,12 +3,13 @@ from sqlalchemy import select, or_, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.infrastructure.exceptions import UserAddressNotFoundError
 from src.domain.dto.user_address_dto import AddUserAddressRequest, DeleteAddressResponse, UpdateUserAddressRequest
 from src.application.interfaces.repositories.user_address_repository import IUserAddressRepository
 from src.infrastructure.drivers.db.tables import UserAddress
 
 
-class UserAddressRepository(IUserAddressRepository): # TODO: add exceptions
+class UserAddressRepository(IUserAddressRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
@@ -41,12 +42,19 @@ class UserAddressRepository(IUserAddressRepository): # TODO: add exceptions
     async def get_user_address_by_id(self, user_id: int, address_id: int) -> UserAddress:
         stmt = (
             select(UserAddress)
-            .where(UserAddress.id == address_id, UserAddress.user_id == user_id)
+            .where(
+                UserAddress.id == address_id,
+                UserAddress.user_id == user_id
+            )
         )
         address_result = await self._session.execute(stmt)
         address = address_result.scalars().first()
+        
+        if not address:
+            raise UserAddressNotFoundError(id=address_id)
 
         return address
+
 
     async def get_user_addresses_by_user_id(self, user_id: int) -> List[UserAddress]:
         stmt = select(UserAddress).where(UserAddress.user_id == user_id)
@@ -112,7 +120,7 @@ class UserAddressRepository(IUserAddressRepository): # TODO: add exceptions
         address = address_result.scalars().one_or_none()
 
         if not address:
-            raise ValueError(f"User address with id {address_id} not found") # TODO: add exceptions
+            raise UserAddressNotFoundError(id=address_id)
 
         if address.is_primary:
             new_address_stmt = (

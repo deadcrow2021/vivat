@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette import status
 from jose import JWTError, jwt
 
+from src.infrastructure.exceptions import UserNotFoundError
 from src.domain.dto.auth_dto import CreateUser, CreateUserResponse, CurrentUserDTO, LogOutResponse, LoginUserRequest, LoginUserResponse, LogInDTO, TokenResponse, UpdateUserResponse
 from src.application.exceptions import DatabaseException, IdNotValidError, TokenError, UnhandledException
 from src.application.interfaces.transaction_manager import ITransactionManager
@@ -26,15 +27,21 @@ class RegisterUserInteractor:
 
     async def __call__(self, user_create_request: CreateUser) -> CreateUserResponse:
         try:
+            check_user = await self._auth_repository.get_user_by_phone(user_create_request.phone)
+            if check_user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Пользователь с таким номером уже зарегистрирован"
+                )
             user = await self._auth_repository.register_user(user_create_request, self._config)
             await self._transaction_manager.commit()
 
             return CreateUserResponse(
                 id=user.id,
-                phone=user.phone # TODO: Могут зарегать не свой телефон
+                phone=user.phone # TODO: Могут зарегать не свой телефон. Проверять ip
             )
         except SQLAlchemyError:
-            raise DatabaseException("Failed to register user in db")
+            raise DatabaseException("Не удалось зарегистрировать пользователя в бд")
 
 
 class LoginUserInteractor:
@@ -92,7 +99,7 @@ class LoginUserInteractor:
             )
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to login user in db")
+            raise DatabaseException("Не удалось войти в систему в бд")
 
 
 class UpdateAccessTokenInteractor:
@@ -110,7 +117,7 @@ class UpdateAccessTokenInteractor:
             refresh_token = request.cookies.get(self._config.token.refresh_token_cookie_key)
 
             if not refresh_token:
-                raise TokenError("Refresh token missing")
+                raise TokenError("Refresh токен не найден")
 
             try:
                 # {'sub': '+79111111111', 'exp': 1758720000}
@@ -122,15 +129,15 @@ class UpdateAccessTokenInteractor:
                 user_phone: str = payload.get("sub")
                 expires: int = payload.get("exp")
                 if not user_phone:
-                    raise TokenError("Invalid token. Can\'t get phone from token")
+                    raise TokenError("Невалидный токен. Не удалось получить номер телефона из токена")
                 if not expires:
-                    raise TokenError("Invalid token. Can\'t get expires from token")
+                    raise TokenError("Невалидный токен. Не удалось получить время жизни токена")
                 if expires < datetime.now(timezone.utc).timestamp():
-                    raise TokenError("Invalid token. Token expired")
+                    raise TokenError("Невалидный токен. Токен просрочен")
             except JWTError:
-                raise TokenError("Invalid token")
+                raise TokenError("Невалидный токен")
             except Exception as e:
-                raise TokenError(f'Unknown token error: {str(e)}')
+                raise TokenError(f'Неизвестная ошибка токена: {str(e)}')
 
             user_dto: LogInDTO = await self._auth_repository.update_access_token(user_phone, refresh_token, self._config)
 
@@ -150,7 +157,7 @@ class UpdateAccessTokenInteractor:
             )
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to updatet token in db")
+            raise DatabaseException("Не удалось обновить токен в бд")
 
 
 class LogoutInteractor:
@@ -164,8 +171,9 @@ class LogoutInteractor:
         self._transaction_manager = transaction_manager
         self._config = config
 
-    async def __call__(self, request: Request, response: Response) -> TokenResponse:
+    async def __call__(self, request: Request, response: Response) -> LogOutResponse:
         try:
+            tokens_revoked = 0
             token_config = self._config.token
             refresh_token = request.cookies.get(self._config.token.refresh_token_cookie_key)
 
@@ -179,11 +187,13 @@ class LogoutInteractor:
                     user_phone: str = payload.get("sub")
                     if user_phone:
                         tokens_revoked = await self._auth_repository.revoke_all_user_refresh_tokens(user_phone)
-                except JWTError:
-                    logger.warning("Invalid token")
+                    await self._transaction_manager.commit()
 
-            await self._transaction_manager.commit()
-            
+                except JWTError:
+                    raise TokenError("Невалидный токен")
+                except Exception as e:
+                    raise TokenError(f'Неизвестная ошибка токена: {str(e)}')
+
             response.delete_cookie(
                 key=self._config.token.access_token_cookie_key,
                 httponly=True,
@@ -196,10 +206,13 @@ class LogoutInteractor:
                 secure=_is_secure(self._config),
                 samesite="Lax"
             )
-            return LogOutResponse(tokens_revoked=tokens_revoked)
+            return LogOutResponse(
+                message="Logout success",
+                tokens_revoked=tokens_revoked
+            )
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to logout user in db")
+            raise DatabaseException("Не удалось выйти из системы в бд")
 
 
 class GetCurrentUserInteractor:
@@ -214,14 +227,10 @@ class GetCurrentUserInteractor:
     async def __call__(self, request: Request) -> CurrentUserDTO:
         try:
             token_config = self._config.token
-            
-            # Получаем токен из cookies
+
             access_token = request.cookies.get(token_config.access_token_cookie_key)
             if not access_token:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Not authenticated"
-                )
+                raise TokenError("Access токен не найден")
 
             try:
                 # Декодируем токен
@@ -232,21 +241,15 @@ class GetCurrentUserInteractor:
                 )
                 phone: str = payload.get("sub")
                 if not phone:
-                    raise TokenError("Invalid token. Can't get phone from token")
-                    
+                    raise TokenError("Невалидный токен. Не удалось получить номер телефона из токена")
+
             except JWTError:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid token"
-                )
+                raise TokenError("Невалидный токен")
 
             # Получаем пользователя из репозитория
             user = await self._auth_repository.get_user_by_phone(phone)
             if not user:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="User not found"
-                )
+                raise UserNotFoundError
 
             return CurrentUserDTO(
                 id=user.id,
@@ -254,7 +257,7 @@ class GetCurrentUserInteractor:
             )
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to get user from token in db")
+            raise DatabaseException("Не удалось получить пользователя из токена в базы данных")
 
 
 def _is_secure(config: Config):

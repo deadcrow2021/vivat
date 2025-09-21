@@ -15,12 +15,12 @@ class OrderItemRepository(IOrderItemRepository): # TODO: add exceptions
         food_query = select(Food).filter(Food.id == order_request.food_id)
         query_result = await self._session.execute(food_query)
         if not query_result.scalars().first():
-            raise ValueError(f"Food with id {order_request.order_id} not found") # TODO: add exceptions
+            raise ValueError(f"Заказ с id {order_request.order_id} не найден") # TODO: add exceptions
 
         order_query = select(Order).filter(Order.id == order_request.order_id)
         query_result = await self._session.execute(order_query)
         if not query_result.scalars().first():
-            raise ValueError(f"Order with id {order_request.order_id} not found") # TODO: add exceptions
+            raise ValueError(f"Заказ с id {order_request.order_id} не найден") # TODO: add exceptions
 
         new_order_item = OrderItem(
             food_id=order_request.food_id,

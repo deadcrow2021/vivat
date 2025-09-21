@@ -50,17 +50,19 @@ class BaseRestaurantRequest(PhoneValidatorMixin, BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
+            raise RequestValidationError("Недопустипые символы в названии")
         if len(v.strip()) == 0:
-            raise RequestValidationError("Name cannot be empty")
+            raise RequestValidationError("Название не может быть пустым")
         return v
 
     @field_validator("address")
     def validate_address(cls, v: Optional[str]):
         if v is None:
             return v
+        if any(char in v for char in ["'", '"', ";", "--"]):
+            raise RequestValidationError("Недопустипые символы в названии адреса")
         if len(v.strip()) == 0:
-            raise RequestValidationError("Address cannot be empty")
+            raise RequestValidationError("Адрес не может быть пустым")
         return v
 
     @field_validator("latitude")
@@ -68,7 +70,7 @@ class BaseRestaurantRequest(PhoneValidatorMixin, BaseModel):
         if v is None:
             return v
         if not (-90 <= v <= 90):
-            raise RequestValidationError("Latitude must be between -90 and 90")
+            raise RequestValidationError("Широта должна быть между -90 и 90")
         return v
 
     @field_validator("longitude")
@@ -76,7 +78,7 @@ class BaseRestaurantRequest(PhoneValidatorMixin, BaseModel):
         if v is None:
             return v
         if not (-180 <= v <= 180):
-            raise RequestValidationError("Longitude must be between -180 and 180")
+            raise RequestValidationError("Долгота должна быть между -180 и 180")
         return v
 
 
@@ -161,9 +163,9 @@ class UpdateRestaurantRequest(BaseRestaurantRequest):
                 opens = datetime.strptime(hours.from_, "%H:%M").time()
                 closes = datetime.strptime(hours.to, "%H:%M").time()
                 if opens >= closes:
-                    raise RequestValidationError(f"Opening time must be before closing time for {day}")
+                    raise RequestValidationError(f"Время открытия не может быть позже времени закрытия для {day}")
             except RequestValidationError as e:
-                raise RequestValidationError(f"Invalid time format for {day}: {str(e)}")
+                raise RequestValidationError(f"Неверный формат времени для {day}: {str(e)}")
         
         return v
 
@@ -173,15 +175,15 @@ class UpdateRestaurantRequest(BaseRestaurantRequest):
             return v
         
         if len(v) != len(set(v)):
-            raise RequestValidationError("Feature names must be unique")
+            raise RequestValidationError("Названия удобств должны быть уникальными")
         
         for feature in v:
             if not feature.strip():
-                raise RequestValidationError("Feature name cannot be empty")
+                raise RequestValidationError("Название удобств не может быть пустым")
             if len(feature) > 100:
-                raise RequestValidationError("Feature name is too long (max 100 chars)")
+                raise RequestValidationError("Название удобств слишком длинное (максимум 100 символов)")
             if any(char in feature for char in ["'", '"', ";", "--"]):
-                raise RequestValidationError("Invalid characters in feature name")
+                raise RequestValidationError("Недопустимые символы в названии удобств")
         
         return v
 

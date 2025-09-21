@@ -15,7 +15,7 @@ class AddOrderItemRequest(BaseModel):
         if v is None:
             return v
         if v < 1:
-            raise RequestValidationError("Food id must be greater than 0")
+            raise RequestValidationError("Id блюда должен быть больше 0")
         return v
 
     @field_validator("order_id")
@@ -23,13 +23,13 @@ class AddOrderItemRequest(BaseModel):
         if v is None:
             return v
         if v < 1:
-            raise RequestValidationError("Order id must be greater than 0")
+            raise RequestValidationError("Id заказа должен быть больше 0")
         return v
 
     @field_validator("final_price")
     def validate_total_price(cls, v: float):
         if v < 0:
-            raise RequestValidationError("Total price must be greater than 0")
+            raise RequestValidationError("Итоговая цена должна быть больше 0")
         return v
 
 class AddOrderItemResponse(BaseModel):

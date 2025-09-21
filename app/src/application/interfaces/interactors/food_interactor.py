@@ -26,7 +26,7 @@ class GetFoodInteractor:
             )
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to get food in db")
+            raise DatabaseException("Не удалось получить блюдо из базы данных")
 
 
 class AddFoodInteractor:
@@ -59,4 +59,4 @@ class AddFoodInteractor:
             )
         
         except SQLAlchemyError:
-            raise DatabaseException("Failed to add food to menu category in db")
+            raise DatabaseException("Не удалось добавить блюдо в категорию меню в базе данных")

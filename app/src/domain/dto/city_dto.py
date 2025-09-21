@@ -14,9 +14,9 @@ class BaseCityRequest(BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
+            raise RequestValidationError("Недопустипые символы в названии")
         if len(v.strip()) == 0:
-            raise RequestValidationError("Name cannot be empty")
+            raise RequestValidationError("Название не может быть пустым")
         return v
 
     @field_validator("latitude")
@@ -24,7 +24,7 @@ class BaseCityRequest(BaseModel):
         if v is None:
             return v
         if not (-90 <= v <= 90):
-            raise RequestValidationError("Latitude must be between -90 and 90")
+            raise RequestValidationError("Широта должна быть между -90 и 90")
         return v
 
     @field_validator("longitude")
@@ -32,7 +32,7 @@ class BaseCityRequest(BaseModel):
         if v is None:
             return v
         if not (-180 <= v <= 180):
-            raise RequestValidationError("Longitude must be between -180 and 180")
+            raise RequestValidationError("Долгота должна быть между -180 и 180")
         return v
 
 

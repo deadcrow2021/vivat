@@ -17,7 +17,7 @@ class PhoneValidatorMixin:
         match = re.match(pattern, v)
         
         if not match:
-            raise ValueError("Invalid Russian phone number format")
+            raise ValueError("Невалидный формат Российского номера телефона")
         
         # Нормализуем номер к формату +7XXXXXXXXXX
         groups = match.groups()

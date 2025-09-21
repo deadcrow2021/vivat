@@ -1,3 +1,5 @@
+from typing import List
+
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Request
@@ -5,7 +7,7 @@ from starlette import status
 
 from src.domain.dto.city_dto import DeleteCityResponse
 from src.application.interfaces.interactors.auth_interactor import GetCurrentUserInteractor
-from src.domain.dto.user_address_dto import AddUserAddressRequest, AddUserAddressResponse, GetUserAddressResponse, UpdateUserAddressRequest
+from src.domain.dto.user_address_dto import AddUserAddressRequest, AddUserAddressResponse, GetUserAddress, UpdateUserAddressRequest
 from src.application.interfaces.interactors.user_address_interactor import AddUserAddressInteractor, DeleteAddressInteractor, GetUserAddressInteractor, UpdateUserAddressInteractor#, GetUserAddressInteractor
 
 
@@ -13,9 +15,9 @@ from src.application.interfaces.interactors.user_address_interactor import AddUs
 router = APIRouter(prefix="/user_address", tags=["User Address"])
 
 @router.get(
-    "/{address_id}",
+    "/",
     status_code=status.HTTP_200_OK,
-    response_model=GetUserAddressResponse,
+    response_model=List[GetUserAddress],
     responses={
         status.HTTP_404_NOT_FOUND: {"error": "Address not found."},
     },

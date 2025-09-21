@@ -36,17 +36,17 @@ class OrderedPosition(BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
+            raise RequestValidationError("Недопустимые символы в имени")
         if len(v.strip()) == 0:
-            raise RequestValidationError("Name cannot be empty")
+            raise RequestValidationError("Имя не может быть пустым")
         return v
 
     @field_validator("quantity")
     def validate_quantity(cls, v: int):
         if v is None:
             return v
-        if v < 1 or v > 19: # TODO: Спросить
-            raise RequestValidationError("Quantity must be greater than 0 or lower than 99")
+        if v < 1 or v > 19:
+            raise RequestValidationError("Количество блюда должно быть больше 0 или меньше 20")
         return v
 
     @field_validator('addings')
@@ -56,9 +56,9 @@ class OrderedPosition(BaseModel):
         if isinstance(v, list):
             for item in v:
                 if item < 1:
-                    raise RequestValidationError('Addings id must be greater than 0')
+                    raise RequestValidationError('Id добавок должен быть больше 0')
         else:
-            raise RequestValidationError('Addings must be a list')
+            raise RequestValidationError('Добавки должны быть списком')
         return v
 
     @field_validator('removed_ingredients')
@@ -68,9 +68,9 @@ class OrderedPosition(BaseModel):
         if isinstance(v, list):
             for item in v:
                 if item < 1:
-                    raise RequestValidationError('Removed ingridients id must be greater than 0')
+                    raise RequestValidationError('Id убираемых ингридиентов должен быть больше 0')
         else:
-            raise RequestValidationError('Removed ingridients must be a list')
+            raise RequestValidationError('Уибраемые ингридиенты должны быть списком')
         return v
 
 
@@ -86,9 +86,9 @@ class SelectedRestaurant(PhoneValidatorMixin, BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in address")
+            raise RequestValidationError("Недопустимые символы в адресе")
         if len(v.strip()) == 0:
-            raise RequestValidationError("Address cannot be empty")
+            raise RequestValidationError("Адрес не может быть пустым")
         return v
 
 
@@ -100,14 +100,14 @@ class UserInfo(BaseModel):
         if v is None:
             return v
         if v < 1:
-            raise RequestValidationError("Id must be greater than 0 or lower than 99")
+            raise RequestValidationError("Id адреса должен быть больше 0")
         return v
 
 class OrderRequest(BaseModel):
     selected_restaurant: SelectedRestaurant
     order_list: List[OrderedPosition]
     user_info: UserInfo
-    order_quantity: int # TODO: Спросить
+    order_quantity: int
     cook_start: str # "13:37"(сейчас) "09:00" "18:30" сиводня
     payment_method: str # "cash", "card"
 
@@ -116,21 +116,21 @@ class OrderRequest(BaseModel):
         if v is None:
             return v
         if v < 1 or v > 99:
-            raise RequestValidationError("Order quantity must be greater than 0 or lower than 99")
+            raise RequestValidationError("Количество блюд в заказе должно быть больше 1 и меньше 99")
         return v
 
     @field_validator("cook_start")
     def validate_cook_start(cls, v):
         # Проверяем формат времени HH:MM
         if not re.match(r'^([01]\d|2[0-3]):[0-5]\d$', v):
-            raise RequestValidationError('cook_start должен быть в формате HH:MM')
+            raise RequestValidationError('Начало готовки должен быть в формате HH:MM')
         return v
 
     @field_validator('payment_method')
     def validate_payment_method(cls, v):
         # Проверяем допустимые методы оплаты
         if v not in ['cash', 'card']:
-            raise RequestValidationError('payment_method должен быть "cash" или "card"')
+            raise RequestValidationError('Метод оплаты должен быть "cash" или "card"')
         return v
 
 

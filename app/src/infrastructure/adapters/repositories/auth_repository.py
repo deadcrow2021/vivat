@@ -97,10 +97,9 @@ class AuthRepository(IAuthRepository):
         user_result = await self._session.execute(user_query)
         user = user_result.scalars().first()
         if not user:
-            raise InvalidCredentialsError("User not found. Invalid phone in token")
+            raise InvalidCredentialsError("Пользователь не найден. Неверный телефон в токене.")
         if user.is_removed:
-            raise InvalidCredentialsError("User is deactivated") # TODO: предусмотреть в остальных случаях
-            
+            raise InvalidCredentialsError("Пользователь неактивен") # TODO: предусмотреть is_removed в остальных случаях
 
         token_query = (
             select(RefreshToken)
@@ -115,7 +114,7 @@ class AuthRepository(IAuthRepository):
         valid_refresh_token = token_result.scalars().first()
 
         if not valid_refresh_token:
-            raise InvalidCredentialsError("Valid refresh token not found.")
+            raise InvalidCredentialsError("Валидный refresh токен не найден.")
 
         access_token_expires = timedelta(minutes=config.token.access_token_expire_minutes)
         access_token = self._create_token(
@@ -131,12 +130,11 @@ class AuthRepository(IAuthRepository):
         return LogInDTO(
             user=login_dto,
             access_token=access_token,
-            # refresh_token=refresh_token,
             token_type="bearer"
         )
 
 
-    async def revoke_all_user_refresh_tokens(self, user_phone: str) -> None:
+    async def revoke_all_user_refresh_tokens(self, user_phone: str) -> int:
         user_query = select(User).filter(User.phone == user_phone)
         user_result = await self._session.execute(user_query)
         user = user_result.scalars().first()
@@ -154,7 +152,7 @@ class AuthRepository(IAuthRepository):
         )
         token_result = await self._session.execute(token_query)
 
-        return token_result.rowcount
+        return token_result.rowcount if token_result.rowcount > 0 else 0
 
 
     async def get_refresh_token(self, phone: str) -> Optional[RefreshToken]:

@@ -26,4 +26,4 @@ class GetFoodVariantInteractor:
             ]
         
         except SQLAlchemyError:
-            raise DatabaseException("Failed to add food characteristic to food variant in db")
+            raise DatabaseException("Не удалось добавить характеристику блюда к блюду в бд")

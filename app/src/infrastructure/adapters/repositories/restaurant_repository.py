@@ -57,7 +57,7 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             if not restaurant:
                 raise RestaurantNotFoundError(id=restaurant_id)
         except SQLAlchemyError as e:
-            logger.error(f"Failed to get restaurant: {e}")
+            logger.error(f"Не удалось получить ресторан: {e}")
             raise
 
         return restaurant
@@ -111,7 +111,7 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             rest_result = await self._session.execute(rest_query)
             restaurants = rest_result.scalars().all()
         except SQLAlchemyError as e:
-            logger.error(f"Failed to get city restaurants: {e}")
+            logger.error(f"Не удалось получить рестораны в городе: {e}")
             raise
 
         if not restaurants:

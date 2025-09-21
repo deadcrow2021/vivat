@@ -56,13 +56,13 @@ class AddCategoryToRestaurantRequest(BaseModel):
     @field_validator("restaurant_id")
     def check_restaurant_id(cls, value: int) -> int:
         if value < 1:
-            raise RequestValidationError("Restaurant id must be greater than 0")
+            raise RequestValidationError("Id ресторана не может быть меньше 1")
         return value
 
     @field_validator("category_id")
     def check_category_id(cls, value: int) -> int:
         if value < 1:
-            raise RequestValidationError("Category id must be greater than 0")
+            raise RequestValidationError("Id категории не может быть меньше 1")
         return value
 
 
@@ -76,11 +76,11 @@ class AddMenuCategoryRequest(BaseModel):
         if v is None:
             return v
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
+            raise RequestValidationError("Недопустимые символы в имени")
         if len(v.strip()) == 0:
-            raise RequestValidationError("Name cannot be empty")
+            raise RequestValidationError("Имя не может быть пустым")
         if len(v) < 3:
-            raise RequestValidationError("Category name must be at least 3 characters long")
+            raise RequestValidationError("Название категории должно быть не менее 3 символов")
         return v
 
 

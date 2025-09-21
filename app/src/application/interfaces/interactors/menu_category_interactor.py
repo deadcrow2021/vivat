@@ -24,7 +24,7 @@ class GetMenuCategoryInteractor:
                 None
             )
             if not current_category:
-                raise ValueError(f"Category with id {category_id} not found")
+                raise ValueError(f"Категория меню с id {category_id} не найдена")
         else:
             current_category = categories[0]
         
@@ -62,7 +62,7 @@ class GetRestaurantMenuCategoryInteractor:
         categories = await self._menu_category_repository.get_restaurant_menu_categories(restaurant_id)
 
         if not categories:
-            raise ValueError("Menu categories not found for this restaurant")
+            raise ValueError("Для этого ресторана нет категорий")
 
         # Выбираем текущую категорию
         if category_id:
@@ -71,7 +71,7 @@ class GetRestaurantMenuCategoryInteractor:
                 None
             )
             if not current_category:
-                raise ValueError(f"Category with id {category_id} not found")
+                raise ValueError(f"Категория с id {category_id} не найдена")
         else:
             current_category = categories[0]
 

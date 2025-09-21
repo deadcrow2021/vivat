@@ -22,7 +22,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def general_exception_handler(request: Request, exc: Exception):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": f'Unhandled exception: {exc}'},
+            content={"detail": f'Неизвестная ошибка: {exc}'},
         )
 
     # INFRASTRUCTURE EXCEPTION HANDLERS
@@ -91,7 +91,14 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(infra_exc.VariantNotFoundError)
-    async def variant_exists_handler(_: Request, exc: Exception) -> JSONResponse:
+    async def variant_not_found_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": str(exc)},
+        )
+
+    @app.exception_handler(infra_exc.UserAddressNotFoundError)
+    async def user_address_not_found_handler(_: Request, exc: Exception) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content={"detail": str(exc)},

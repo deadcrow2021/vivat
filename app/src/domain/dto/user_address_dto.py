@@ -9,33 +9,32 @@ class BaseUserAddressRequest(BaseModel):
     entrance: Optional[str] = None
     floor: Optional[float] = None
     apartment: Optional[str] = None
-    is_primary: Optional[bool] = None
 
     @field_validator("address")
     def address_validator(cls, v):
         txt_len = len(v.strip())
         if txt_len < 1 or txt_len > 1000:
-            raise RequestValidationError("Address must be between 1 and 1000 characters")
+            raise RequestValidationError("Адрес должен быть между 1 и 1000 символами")
         return v
 
     @field_validator("entrance")
     def entrance_validator(cls, v):
         txt_len = len(v.strip())
         if txt_len < 1 or txt_len > 20:
-            raise RequestValidationError("Entrance must be between 1 and 20 characters")
+            raise RequestValidationError("Подъезд должен быть между 1 и 20 символами")
         return v
 
     @field_validator("floor")
     def floor_must_be_positive(cls, v):
         if v < 0 or v > 500:
-            raise RequestValidationError("Floor must be positive")
+            raise RequestValidationError("Этаж должен быть положительным числом")
         return v
 
     @field_validator("apartment")
     def entrance_validator(cls, v):
         txt_len = len(v.strip())
         if txt_len < 1 or txt_len > 20:
-            raise RequestValidationError("Apartment must be between 1 and 1000 characters")
+            raise RequestValidationError("Квартира должна быть между 1 и 20 символами")
         return v
 
 
@@ -52,8 +51,6 @@ class BaseUserAddressResponse(BaseModel):
 class GetUserAddress(BaseUserAddressResponse):
     pass
 
-class GetUserAddressResponse(BaseModel):
-    addresses: List[GetUserAddress]
 
 # Add address
 
@@ -69,7 +66,7 @@ class AddUserAddressResponse(BaseUserAddressResponse):
 # Update
 
 class UpdateUserAddressRequest(BaseUserAddressRequest):
-    pass
+    is_primary: Optional[bool] = None
 
 class UpdateUserAddressResponse(BaseUserAddressResponse):
     pass

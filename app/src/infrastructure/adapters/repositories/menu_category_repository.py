@@ -31,7 +31,7 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
         last_category = result.scalars().one_or_none() # TODO: Вынести в отдельную функцию
 
         if not last_category:
-            raise ValueError("Menu categories not found") # TODO: Change
+            raise ValueError("Категории меню не найдены") # TODO: Change
 
         new_category = MenuCategory(
             name=menu_category_request.name,
@@ -53,7 +53,7 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
         categories = result.scalars().all()
         
         if not categories:
-            raise ValueError("Menu categories not found") ### Change
+            raise ValueError("Категории меню не найдены") ### Change
         
         return categories
 
@@ -141,7 +141,7 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
         categories = result.scalars().all()
         
         if not categories:
-            raise ValueError("Menu categories not found for this restaurant")
+            raise ValueError("Для данного ресторана нет категорий меню") # TODO: Change
         
         return categories
 

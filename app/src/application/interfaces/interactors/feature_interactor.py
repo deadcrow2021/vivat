@@ -25,7 +25,7 @@ class GetFeatureInteractor:
             )
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to get feature by id in db")
+            raise DatabaseException("Не удалось получить фичу из базы данных")
 
 
 class GetAllFeaturesInteractor:
@@ -48,7 +48,7 @@ class GetAllFeaturesInteractor:
             return GetAllFeaturesResponse(data=data)
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to get all features in db")
+            raise DatabaseException("Не удалось получить все фичи из базы данных")
 
 
 class AddFeatureInteractor:
@@ -71,7 +71,7 @@ class AddFeatureInteractor:
             )
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to add feature in db")
+            raise DatabaseException("Не удалось добавить фичу в базу данных")
 
 
 class DeleteFeatureInteractor:
@@ -94,4 +94,4 @@ class DeleteFeatureInteractor:
             return feature_response
 
         except SQLAlchemyError:
-            raise DatabaseException("Failed to add feature in db")
+            raise DatabaseException("Не удалось удалить фичу из базы данных")

@@ -15,40 +15,38 @@ class BaseFoodRequest(BaseModel):
         if v is None:
             return v
         if len(v) > 500:
-            raise RequestValidationError("Measure name exceeds maximum length of 50 characters")
+            raise RequestValidationError("Название не может превышать 500 символов")
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
+            raise RequestValidationError("Недопустимые символы в названии")
         if len(v.strip()) == 0:
-            raise RequestValidationError("Name cannot be empty")
+            raise RequestValidationError("Название не может быть пустым")
         return v
     
     @field_validator("image_url")
     def validate_file_path(cls, v: str):
-        if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
         # Проверяем, что строка содержит хотя бы один разделитель пути (/ или \)
         if not any(separator in v for separator in ("/", "\\")):
-            raise RequestValidationError("Invalid file path format - must contain / or \\")
+            raise RequestValidationError("Недопустимый формат пути к файлу - должен содержать / или \\")
 
         # Проверяем отсутствие опасных символов
-        if any(char in v for char in ["<", ">", ":", "|", "?", "*"]):
-            raise RequestValidationError("Invalid characters in file path")
+        if any(char in v for char in ["<", ">", ":", "|", "?", "*", "'", '"', ";", "--"]):
+            raise RequestValidationError("Недопустимые символы в пути к файлу")
         return v
     
     @field_validator("description")
     def validate_description(cls, v: str):
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
+            raise RequestValidationError("Недопустимые символы в описании")
         if len(v) > 5000:
-            raise RequestValidationError("Description exceeds maximum length of 5000 characters")
+            raise RequestValidationError("Описание не может превышать 5000 символов")
         return v
 
     @field_validator("measure_name")
     def validate_measure_name(cls, v: str):
         if any(char in v for char in ["'", '"', ";", "--"]):
-            raise RequestValidationError("Invalid characters in name")
+            raise RequestValidationError("Недопустимые символы в названии меры измерения")
         if len(v) > 50:
-            raise RequestValidationError("Measure name exceeds maximum length of 50 characters")
+            raise RequestValidationError("Название меры измерения не может превышать 50 символов")
         return v
 
 
