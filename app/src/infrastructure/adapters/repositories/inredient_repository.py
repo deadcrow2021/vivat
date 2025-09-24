@@ -20,7 +20,7 @@ class IngredientRepository(IIngredientRepository):
         return ingredients
 
 
-    async def get_default_ingredients_by_category_id(self, category_id: int) -> List[Ingredient]:
+    async def get_adding_ingredients_by_category_id(self, category_id: int) -> List[Ingredient]:
         stmt = (
             select(MenuCategory)
             .where(MenuCategory.id == category_id)
@@ -43,7 +43,7 @@ class IngredientRepository(IIngredientRepository):
             )
             .where(
                 Food.category_id == category_id,
-                FoodIngredientAssociation.is_default == True
+                FoodIngredientAssociation.is_adding == True
             )
             .distinct()
         )

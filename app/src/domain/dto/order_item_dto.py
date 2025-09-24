@@ -6,11 +6,11 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class AddOrderItemRequest(BaseModel):
-    food_id: int
+    food_variant_id: int
     order_id: int
     final_price: float
 
-    @field_validator("food_id")
+    @field_validator("food_variant_id")
     def validate_food_id(cls, v: Optional[int]):
         if v is None:
             return v

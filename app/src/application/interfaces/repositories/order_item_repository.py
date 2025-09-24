@@ -7,5 +7,9 @@ from src.infrastructure.drivers.db.tables import OrderItem
 
 class IOrderItemRepository(Protocol):
     @abstractmethod
-    async def add_order_item_to_order_by_id(self, order_id: int, order_request: AddOrderItemRequest) -> OrderItem:
+    async def add_order_item_to_order_by_id(
+        self,
+        order_id: int,
+        order_request: AddOrderItemRequest
+    ) -> OrderItem:
         raise NotImplementedError

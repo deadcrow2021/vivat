@@ -23,7 +23,7 @@ from src.application.interfaces.interactors.restaurant_interactor import (
 
 router = APIRouter(prefix="/restaurant", tags=["Restaurant"])
 
-# TODO: add exceptions
+
 @router.get(
     "/{restaurant_id}",
     status_code=status.HTTP_200_OK,
@@ -56,50 +56,51 @@ async def get_restaurant_by_city_id(
     return await get_city_restaurants(city_id)
 
 
-@router.post(
-    "/{city_id}",
-    status_code=status.HTTP_201_CREATED,
-    response_model=AddRestaurantResponse,
-    responses={
-        status.HTTP_400_BAD_REQUEST: {"error": "Restaurant haven't been created."},
-    },
-)
-@inject
-async def create_restaurant_by_city_id(
-    city_id: int,
-    restaurant: AddRestaurantRequest,
-    add_restaurant: FromDishka[CreateRestaurantInteractor],
-):
-    return await add_restaurant(city_id, restaurant)
+# TODO: нужна проверка на роль админа
+# @router.post(
+#     "/{city_id}",
+#     status_code=status.HTTP_201_CREATED,
+#     response_model=AddRestaurantResponse,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"error": "Restaurant haven't been created."},
+#     },
+# )
+# @inject
+# async def create_restaurant_by_city_id(
+#     city_id: int,
+#     restaurant: AddRestaurantRequest,
+#     add_restaurant: FromDishka[CreateRestaurantInteractor],
+# ):
+#     return await add_restaurant(city_id, restaurant)
 
 
-@router.patch(
-    "/{restaurant_id}",
-    status_code=status.HTTP_201_CREATED,
-    response_model=AddRestaurantResponse,
-    responses={
-        status.HTTP_400_BAD_REQUEST: {"error": "Restaurant haven't been changed."},
-    },
-)
-@inject
-async def update_restaurant_by_id(
-    restaurant_id: int,
-    restaurant: UpdateRestaurantRequest,
-    change_restaurant: FromDishka[UpdateRestaurantInteractor],
-):
-    return await change_restaurant(restaurant_id, restaurant)
+# @router.patch(
+#     "/{restaurant_id}",
+#     status_code=status.HTTP_201_CREATED,
+#     response_model=AddRestaurantResponse,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"error": "Restaurant haven't been changed."},
+#     },
+# )
+# @inject
+# async def update_restaurant_by_id(
+#     restaurant_id: int,
+#     restaurant: UpdateRestaurantRequest,
+#     change_restaurant: FromDishka[UpdateRestaurantInteractor],
+# ):
+#     return await change_restaurant(restaurant_id, restaurant)
 
 
-@router.delete(
-    "/{restaurant_id}",
-    status_code=status.HTTP_200_OK,
-    response_model=DeleteRestaurantResponse,
-    responses={
-        status.HTTP_400_BAD_REQUEST: {"error": "Restaurant haven't been deleted."},
-    },
-)
-@inject
-async def delete_restaurant_by_id(
-    restaurant_id: int, delete_restaurant: FromDishka[DeleteRestaurantInteractor]
-):
-    return await delete_restaurant(restaurant_id)
+# @router.delete(
+#     "/{restaurant_id}",
+#     status_code=status.HTTP_200_OK,
+#     response_model=DeleteRestaurantResponse,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"error": "Restaurant haven't been deleted."},
+#     },
+# )
+# @inject
+# async def delete_restaurant_by_id(
+#     restaurant_id: int, delete_restaurant: FromDishka[DeleteRestaurantInteractor]
+# ):
+#     return await delete_restaurant(restaurant_id)

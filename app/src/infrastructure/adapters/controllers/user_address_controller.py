@@ -72,7 +72,7 @@ async def update_user_address(
 
 
 @router.delete(
-    "/",
+    "/{address_id}",
     status_code=status.HTTP_200_OK,
     response_model=DeleteCityResponse,
     responses={

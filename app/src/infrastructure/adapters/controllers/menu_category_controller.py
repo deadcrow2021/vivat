@@ -12,10 +12,9 @@ from src.application.interfaces.interactors.menu_category_interactor import (
 )
 
 
-
 router = APIRouter(prefix="/category", tags=["Menu Category"])
 
-# TODO: add exceptions
+
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,
@@ -49,17 +48,18 @@ async def get_restaurant_menu_category(
     return await get_restaurant_category(restaurant_id, category_id)
 
 
-@router.post(
-    "/",
-    status_code=status.HTTP_201_CREATED,
-    response_model=AddMenuCategoryResponse,
-    responses={
-        status.HTTP_400_BAD_REQUEST: {"error": "Menu category haven't been created."},
-    },
-)
-@inject
-async def add_menu_category(
-    menu_category_request: AddMenuCategoryRequest,
-    add_category: FromDishka[AddMenuCategoryInteractor]
-):
-    return await add_category(menu_category_request)
+# TODO: добавить проверку на роль админа
+# @router.post(
+#     "/",
+#     status_code=status.HTTP_201_CREATED,
+#     response_model=AddMenuCategoryResponse,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"error": "Menu category haven't been created."},
+#     },
+# )
+# @inject
+# async def add_menu_category(
+#     menu_category_request: AddMenuCategoryRequest,
+#     add_category: FromDishka[AddMenuCategoryInteractor]
+# ):
+#     return await add_category(menu_category_request)

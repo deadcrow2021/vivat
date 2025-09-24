@@ -12,7 +12,7 @@ class PromotionItem(BaseModel):
 class CategoryItem(BaseModel):
     id: int
     name: str
-    # need_addings: Optional[bool] = None
+    need_addings: bool
 
 
 class AddingItem(BaseModel):
@@ -49,7 +49,7 @@ class HomePageResponse(BaseModel):
 
 
 ### Add categoty to restaurant
-class AddCategoryToRestaurantRequest(BaseModel):
+class AddCategoryToRestaurantRequest(BaseModel): # TODO: добавить эндпоинт по добавлению категории к ресторану
     restaurant_id: int
     category_id: int
 
@@ -79,8 +79,6 @@ class AddMenuCategoryRequest(BaseModel):
             raise RequestValidationError("Недопустимые символы в имени")
         if len(v.strip()) == 0:
             raise RequestValidationError("Имя не может быть пустым")
-        if len(v) < 3:
-            raise RequestValidationError("Название категории должно быть не менее 3 символов")
         return v
 
 

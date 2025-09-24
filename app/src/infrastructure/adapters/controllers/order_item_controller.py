@@ -9,17 +9,18 @@ from src.application.interfaces.interactors.order_item_interactor import AddOrde
 
 router = APIRouter(prefix="/order_item", tags=["Order Item"])
 
-@router.post(
-    "/",
-    status_code=status.HTTP_201_CREATED,
-    response_model=AddOrderItemResponse,
-    responses={
-        status.HTTP_400_BAD_REQUEST: {"error": "Order item haven't been created."},
-    },
-)
-@inject
-async def add_order_item(
-    order_item_request: AddOrderItemRequest,
-    add_item: FromDishka[AddOrderItemInteractor]
-):
-    return await add_item(order_item_request)
+# TODO: проверить на роль админа
+# @router.post(
+#     "/",
+#     status_code=status.HTTP_201_CREATED,
+#     response_model=AddOrderItemResponse,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"error": "Order item haven't been created."},
+#     },
+# )
+# @inject
+# async def add_order_item(
+#     order_item_request: AddOrderItemRequest,
+#     add_item: FromDishka[AddOrderItemInteractor]
+# ):
+#     return await add_item(order_item_request)

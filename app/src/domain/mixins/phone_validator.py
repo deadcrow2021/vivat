@@ -2,6 +2,7 @@ from typing import Optional
 import re
 
 from pydantic import field_validator
+import phonenumbers
 
 
 class PhoneValidatorMixin:
@@ -9,21 +10,16 @@ class PhoneValidatorMixin:
     
     @field_validator("phone")
     @classmethod
-    def validate_and_normalize_phone(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-            
-        pattern = r"^(\+7|7|8)?[\s\-]?\(?([0-9]{3})\)?[\s\-]?([0-9]{3})[\s\-]?([0-9]{2})[\s\-]?([0-9]{2})$"
-        match = re.match(pattern, v)
-        
-        if not match:
-            raise ValueError("Невалидный формат Российского номера телефона")
-        
-        # Нормализуем номер к формату +7XXXXXXXXXX
-        groups = match.groups()
-        code = groups[1]  # код оператора
-        part1 = groups[2]  # первые 3 цифры
-        part2 = groups[3]  # следующие 2 цифры
-        part3 = groups[4]  # последние 2 цифры
-        
-        return f"+7{code}{part1}{part2}{part3}"
+    def validate_and_normalize_phone(cls, v: str) -> str:
+        try:
+            phone_obj = phonenumbers.parse(v, "RU")
+        except phonenumbers.NumberParseException:
+            raise ValueError("Некорректный номер телефона")
+
+        if not phonenumbers.is_valid_number(phone_obj):
+            raise ValueError("Невалидный номер телефона")
+
+        # нормализуем к E.164 (+7XXXXXXXXXX)
+        return phonenumbers.format_number(
+            phone_obj, phonenumbers.PhoneNumberFormat.E164
+        )

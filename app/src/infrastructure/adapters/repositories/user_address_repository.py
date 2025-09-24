@@ -49,7 +49,7 @@ class UserAddressRepository(IUserAddressRepository):
         )
         address_result = await self._session.execute(stmt)
         address = address_result.scalars().first()
-        
+
         if not address:
             raise UserAddressNotFoundError(id=address_id)
 
@@ -57,7 +57,11 @@ class UserAddressRepository(IUserAddressRepository):
 
 
     async def get_user_addresses_by_user_id(self, user_id: int) -> List[UserAddress]:
-        stmt = select(UserAddress).where(UserAddress.user_id == user_id)
+        stmt = (
+            select(UserAddress)
+            .where(UserAddress.user_id == user_id)
+            .order_by(UserAddress.is_primary.desc())   
+        )
         address_result = await self._session.execute(stmt)
         address = address_result.scalars().all()
 

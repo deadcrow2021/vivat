@@ -6,10 +6,10 @@ from src.domain.mixins.phone_validator import PhoneValidatorMixin
 
 
 class BaseUserResponse(PhoneValidatorMixin, BaseModel):
-    id: int
-    name: str
-    phone: str
-    email: str
+    id: Optional[int] = None
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
 
 
 class GetUserResponse(BaseUserResponse):

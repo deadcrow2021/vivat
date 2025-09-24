@@ -132,14 +132,14 @@ class OrderRepository(IOrderRepository):
                     assoc: FoodIngredientAssociation = food_ingredients_map[adding_id]
                     if not assoc.is_adding:
                         invalid_ingredients.append(f"Ингредиент {adding_id} нельзя добавить для варианта {fv_id}")
-            
+
             # Проверяем удаляемые ингредиенты
             for remove_id in remove_ids:
                 if remove_id not in food_ingredients_map:
                     invalid_ingredients.append(f"Ингредиент {remove_id} не доступен для варианта {fv_id}")
                 else:
                     assoc = food_ingredients_map[remove_id]
-                    if not assoc.is_removable:
+                    if not assoc.is_default: # только дефолтные можно убрать
                         invalid_ingredients.append(f"Ингредиент {remove_id} нельзя убрать для варианта {fv_id}")
         
         if invalid_ingredients:

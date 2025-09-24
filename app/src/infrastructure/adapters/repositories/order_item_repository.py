@@ -23,7 +23,7 @@ class OrderItemRepository(IOrderItemRepository): # TODO: add exceptions
             raise ValueError(f"Заказ с id {order_request.order_id} не найден") # TODO: add exceptions
 
         new_order_item = OrderItem(
-            food_id=order_request.food_id,
+            food_variant_id=order_request.food_variant_id,
             order_id=order_request.order_id,
             final_price=order_request.final_price
         )

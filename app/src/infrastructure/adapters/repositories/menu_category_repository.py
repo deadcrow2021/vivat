@@ -1,8 +1,9 @@
-from typing import List
+from typing import List, Union
 from sqlalchemy import and_, select, or_
 from sqlalchemy.orm import contains_eager, joinedload, aliased
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.infrastructure.exceptions import MenuCategoryNotFoundError
 from src.domain.dto.menu_category_dto import AddMenuCategoryRequest, AddingItem, PositionItem, SizeInfo
 from src.application.interfaces.repositories.menu_category_repository import IMunuCategoryRepository
 from src.infrastructure.drivers.db.tables import (
@@ -28,14 +29,11 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
             .limit(1)
         )
         result = await self._session.execute(stmt)
-        last_category = result.scalars().one_or_none() # TODO: Вынести в отдельную функцию
-
-        if not last_category:
-            raise ValueError("Категории меню не найдены") # TODO: Change
+        last_category = result.scalars().first() # TODO: Вынести в отдельную функцию
 
         new_category = MenuCategory(
             name=menu_category_request.name,
-            display_order=last_category.display_order + 1
+            display_order=last_category.display_order + 1 if last_category else 1
         )
 
         self._session.add(new_category)
@@ -44,21 +42,35 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
         return new_category
 
 
-    async def get_menu_categories(self) -> List[MenuCategory]:
+    async def get_menu_categories(self, category_id: Union[int, None]) -> List[MenuCategory]:
         stmt = (
             select(MenuCategory)
             .order_by(MenuCategory.display_order.asc())
         )
         result = await self._session.execute(stmt)
         categories = result.scalars().all()
-        
+
+        if category_id:
+            current_category = next(
+                (
+                    category for category in categories
+                    if category.id == category_id
+                ),
+                None
+            )
+            if not current_category:
+                raise MenuCategoryNotFoundError(id=category_id)
+
         if not categories:
-            raise ValueError("Категории меню не найдены") ### Change
-        
+            raise MenuCategoryNotFoundError
+
         return categories
 
 
     async def get_menu_category_positions(self, current_category: MenuCategory) -> List[PositionItem]:
+        if not current_category:
+            raise MenuCategoryNotFoundError
+
         # Реализация без фильтрации по ресторану (оригинальная)
         stmt = (
             select(MenuCategory)
@@ -78,9 +90,11 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
             )
             .where(MenuCategory.id == current_category.id)
             .where(FoodVariant.is_active == True)
-            .where(FoodIngredientAssociation.ingredient.has(Ingredient.is_available == True))
+            .where(
+                FoodIngredientAssociation.ingredient.has(Ingredient.is_available == True),
+                FoodIngredientAssociation.is_default == True
+            )
         )
-
         result = await self._session.execute(stmt)
         categories = result.unique().scalars().one_or_none()
 
@@ -104,6 +118,7 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
             ingredients = []
             for assoc in food.ingredient_associations or []:
                 ingredient = assoc.ingredient
+                # append all ingredients
                 ingredients.append(
                     AddingItem(
                         id=ingredient.id,
@@ -141,15 +156,16 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
         categories = result.scalars().all()
         
         if not categories:
-            raise ValueError("Для данного ресторана нет категорий меню") # TODO: Change
+            raise MenuCategoryNotFoundError
         
         return categories
+
 
     async def get_restaurant_menu_category_positions(self, restaurant_id: int, current_category: MenuCategory) -> List[PositionItem]:
         """Получает позиции меню для категории с учетом отключенных блюд в ресторане"""
         # Создаем алиас для таблицы отключенных блюд
         disabled_alias = aliased(restaurant_food_disabled)
-        
+
         stmt = (
             select(MenuCategory)
             .join(MenuCategory.foods)
@@ -174,7 +190,10 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
             )
             .where(MenuCategory.id == current_category.id)
             .where(FoodVariant.is_active == True)
-            .where(FoodIngredientAssociation.ingredient.has(Ingredient.is_available == True))
+            .where(
+                FoodIngredientAssociation.ingredient.has(Ingredient.is_available == True),
+                FoodIngredientAssociation.is_default == True
+            )
             .where(disabled_alias.c.food_id.is_(None))  # Исключаем отключенные блюда
         )
 

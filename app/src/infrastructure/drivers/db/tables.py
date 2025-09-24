@@ -195,6 +195,9 @@ class MenuCategory(Base):
     display_order: Mapped[int] = mapped_column(
         SmallInteger
     )  # Порядок отображения в меню
+    need_addings: Mapped[bool] = mapped_column(
+        Boolean, default=False
+    )
 
     # Связи
     restaurants: Mapped[list["Restaurant"]] = relationship(
@@ -284,7 +287,7 @@ class FoodIngredientAssociation(Base):
         ForeignKey("ingredient.id", ondelete="CASCADE"), primary_key=True
     )
     is_adding: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    is_removable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # is_removable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_default: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Связи с основными моделями
@@ -449,10 +452,10 @@ class UserAddress(Base):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id", ondelete="CASCADE")
     )
-    address: Mapped[str] = mapped_column(String(1000), nullable=False)
-    entrance: Mapped[str] = mapped_column(String(20))
-    floor: Mapped[int] = mapped_column(SmallInteger)
-    apartment: Mapped[str] = mapped_column(String(20))
+    address: Mapped[str] = mapped_column(String(1000))
+    entrance: Mapped[str] = mapped_column(String(20), nullable=True)
+    floor: Mapped[int] = mapped_column(SmallInteger, nullable=True)
+    apartment: Mapped[str] = mapped_column(String(20), nullable=True)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
     is_removed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False) # TODO: возможно добавить логику
 

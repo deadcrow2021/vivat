@@ -10,5 +10,5 @@ class IIngredientRepository(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_default_ingredients_by_category_id(self, category_id: int) -> List[Ingredient]:
+    async def get_adding_ingredients_by_category_id(self, category_id: int) -> List[Ingredient]:
         raise NotImplementedError

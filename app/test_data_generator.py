@@ -165,7 +165,6 @@ async def generate_test_data(session: AsyncSession):
                     food_id=food.id,
                     ingredient_id=ingredient.id,
                     is_adding=fake.boolean(),
-                    is_removable=fake.boolean(),
                     is_default=fake.boolean()
                 )
                 session.add(assoc)
@@ -225,7 +224,7 @@ async def generate_test_data(session: AsyncSession):
     #         food = random.choice(foods)
     #         variant = random.choice(food.variants)
     #         item = OrderItem(
-    #             food_id=food.id,
+    #             food_variant_id=food.id,
     #             order_id=order.id,
     #             final_price=variant.price
     #         )

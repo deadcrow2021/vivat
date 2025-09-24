@@ -33,6 +33,22 @@ class HoursItem(BaseModel):
 class WorkingHoursModel(RootModel):
     root: Dict[DayShortName, HoursItem]
 
+    @field_validator("root")
+    def validate_working_hours(cls, v: Dict[DayShortName, HoursItem]):
+        if v is None:
+            return v
+
+        for day, hours in v.items():
+            try:
+                opens = datetime.strptime(hours.from_, "%H:%M").time()
+                closes = datetime.strptime(hours.to, "%H:%M").time()
+                if opens >= closes:
+                    raise RequestValidationError(f"Время открытия не может быть позже времени закрытия для {day}")
+            except RequestValidationError as e:
+                raise RequestValidationError(f"Неверный формат времени для {day}: {str(e)}")
+
+        return v
+
 
 class BaseRestaurantRequest(PhoneValidatorMixin, BaseModel):
     name: Optional[str] = None
@@ -152,22 +168,6 @@ class UpdateRestaurantRequest(BaseRestaurantRequest):
     working_hours: Optional[WorkingHoursModel] = None
     menu_categories: Optional[List[int]] = None
     features: Optional[List[str]] = None
-    
-    @field_validator("working_hours")
-    def validate_working_hours(cls, v: Optional[WorkingHoursModel]):
-        if v is None:
-            return v
-        
-        for day, hours in v.root.items():
-            try:
-                opens = datetime.strptime(hours.from_, "%H:%M").time()
-                closes = datetime.strptime(hours.to, "%H:%M").time()
-                if opens >= closes:
-                    raise RequestValidationError(f"Время открытия не может быть позже времени закрытия для {day}")
-            except RequestValidationError as e:
-                raise RequestValidationError(f"Неверный формат времени для {day}: {str(e)}")
-        
-        return v
 
     @field_validator("features")
     def validate_features(cls, v: Optional[List[str]]):

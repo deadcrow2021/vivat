@@ -40,7 +40,7 @@ class GetMenuCategoryIngredientsInteractor:
         try:
             if category_id < 1:
                 raise IdNotValidError
-            ingredients = await self._ingredient_repository.get_default_ingredients_by_category_id(category_id)
+            ingredients = await self._ingredient_repository.get_adding_ingredients_by_category_id(category_id)
 
             return [
                 IngredientResponse(
@@ -51,6 +51,6 @@ class GetMenuCategoryIngredientsInteractor:
                 )
                 for ingredient in ingredients
             ]
-        
+
         except SQLAlchemyError:
             raise DatabaseException("Не удалось получить все ингредиенты из категории меню в БД")

@@ -65,6 +65,7 @@ class LoginUserInteractor:
         response: Response
         ) -> LoginUserResponse:
         try:
+            # TODO: Присылает что refresh токен не найден. Надо присылать Пользователь не зарегистрирован
             login_dto = await self._auth_repository.login_user(login_user_request, self._config)
             user_dto = login_dto.user
             
@@ -230,7 +231,7 @@ class GetCurrentUserInteractor:
 
             access_token = request.cookies.get(token_config.access_token_cookie_key)
             if not access_token:
-                raise TokenError("Access токен не найден")
+                raise TokenError("Информация о пользователе не найдена. Необходимо войти в систему") # Access токен не найден
 
             try:
                 # Декодируем токен

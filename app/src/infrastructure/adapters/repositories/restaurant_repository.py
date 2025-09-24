@@ -179,6 +179,7 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             features = result.scalars().all()
             restaurant.features.extend(features)
 
+        # Обновляем категории меню, если они переданы
         if update_restaurant.menu_categories is not None:
             # Очищаем текущие категории меню
             restaurant.menu_categories.clear()
@@ -261,6 +262,7 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             menu_categories=[],
             features=[],
         )
+
 
     async def delete_restaurant(
         self, restaurant: Restaurant
