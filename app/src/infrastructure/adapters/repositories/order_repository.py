@@ -41,10 +41,10 @@ class OrderRepository(IOrderRepository):
         if not self._has_action(restaurant, action):
             raise ValueError(f"Действие {action} не доступно для этого ресторана")
         
-        if restaurant.address == order_request.selected_restaurant.address:
+        if restaurant.address != order_request.selected_restaurant.address:
             raise ValueError(f"Адрес {order_request.selected_restaurant.address} не совпадает с адресом ресторана")
         
-        if restaurant.phone.e164 == order_request.selected_restaurant.phone:
+        if restaurant.phone.e164 != order_request.selected_restaurant.phone:
             raise ValueError(f"Телефон {order_request.selected_restaurant.address} не совпадает с телефоном ресторана")
 
         # 2. Проверяем адрес
@@ -73,7 +73,7 @@ class OrderRepository(IOrderRepository):
         position_ingredients: Dict[int, Tuple[Set[int], Set[int]]] = {}
 
         for position in order_request.order_list:
-            adding_ids = set(position.addings or [])
+            adding_ids = set(position.addings or []) # TODO: проверить
             remove_ids = set(position.removed_ingredients or [])
             
             all_adding_ids.update(adding_ids)
@@ -184,8 +184,9 @@ class OrderRepository(IOrderRepository):
             food_variant_obj = food_variants[position.size]
             modifier = food_variant_obj.ingredient_price_modifier
 
-            for adding in position.addings:
-                ingredients_price += ceil(ingredients_map[adding] * modifier)
+            if position.addings:
+                for adding in position.addings:
+                    ingredients_price += ceil(ingredients_map[adding] * modifier)
 
             position_clear_price = food_variant_obj.price + ingredients_price
             position_total_price = position_clear_price * position.quantity
@@ -226,7 +227,7 @@ class OrderRepository(IOrderRepository):
         return new_order
 
 
-    def _has_action(restaurant: Restaurant, restaurant_action: OrderAction) -> bool:
+    def _has_action(self, restaurant: Restaurant, restaurant_action: OrderAction) -> bool:
         if OrderAction.DELIVERY == restaurant_action and restaurant.has_delivery:
             return True
         if OrderAction.INSIDE == restaurant_action and restaurant.has_dine_in:

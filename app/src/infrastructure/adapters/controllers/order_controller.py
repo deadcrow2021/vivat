@@ -26,4 +26,4 @@ async def add_order(
     request: Request
 ):
     user_dto = await user(request)
-    return add_order(order_request, user_dto.id)
+    return await add_order(order_request, user_dto.id)

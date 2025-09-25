@@ -5,7 +5,6 @@ from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import order_repository, user_address_repository
 
 
-# TODO: add exceptions
 class AddOrderInteractor:
     def __init__(
         self,
@@ -18,6 +17,8 @@ class AddOrderInteractor:
         self._transaction_manager = transaction_manager
 
     async def __call__(self, order_request: OrderRequest, user_id: int) -> CreateOrderResponse:
+        # TODO: возможно убрать отмечание адреса is_primary,
+        # так при выборе адреса он уже делается is_primary
         await self._user_address_repository.untag_user_addresses(user_id)
         order = await self._order_repository.create_order(order_request, user_id)
         await self._user_address_repository.tag_user_address(user_id, order_request.user_info.address_id)

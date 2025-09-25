@@ -139,7 +139,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             messages = [errors]
         else:
             for err in errors:
-                _, field = err.get('loc')
+                field = ' - '.join(field for field in err.get('loc'))
                 err_msg = err.get('msg')
                 msg = f'{err_msg} - {field}'
                 messages.append(msg)
