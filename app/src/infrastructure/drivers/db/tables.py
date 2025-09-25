@@ -249,7 +249,7 @@ class FoodVariant(Base):
     __tablename__ = "food_variant"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     food_id: Mapped[int] = mapped_column(ForeignKey("food.id", ondelete="CASCADE"))
-    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    price: Mapped[int] = mapped_column(Integer, nullable=False)
     ingredient_price_modifier: Mapped[float] = mapped_column(
         Numeric(10, 4), default=1.0
     )
@@ -299,7 +299,7 @@ class Ingredient(Base):
     __tablename__ = "ingredient"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
-    price: Mapped[float] = mapped_column(Numeric(10, 2))
+    price: Mapped[int] = mapped_column(Integer, nullable=False)
     image_url : Mapped[str] = mapped_column(String(2000), nullable=True)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -353,7 +353,7 @@ class Order(Base):
         nullable=False,
         default=OrderStatus.CREATED
     )
-    total_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    total_price: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
 
@@ -380,7 +380,7 @@ class OrderItem(Base):
         Integer, ForeignKey("order.id", ondelete="CASCADE")
     )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
-    final_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False) # price for one item with addings
+    final_price: Mapped[int] = mapped_column(Integer, nullable=False) # price for one item with addings
 
     # Связи
     food_variant: Mapped["FoodVariant"] = relationship(back_populates="order_item")

@@ -12,7 +12,7 @@ class OrderItemRepository(IOrderItemRepository): # TODO: add exceptions
         self._session = session
 
     async def add_order_item_to_order_by_id(self, order_request: AddOrderItemRequest) -> OrderItem:
-        food_query = select(Food).filter(Food.id == order_request.food_id)
+        food_query = select(Food).filter(Food.id == order_request.food_variant_id)
         query_result = await self._session.execute(food_query)
         if not query_result.scalars().first():
             raise ValueError(f"Заказ с id {order_request.order_id} не найден") # TODO: add exceptions

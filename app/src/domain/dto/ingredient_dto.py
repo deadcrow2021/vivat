@@ -6,5 +6,5 @@ from pydantic import BaseModel, Field, field_validator
 class IngredientResponse(BaseModel):
     id: int
     name: str
-    price: float
+    price: int
     image_url: str

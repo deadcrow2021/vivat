@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, field_validator
 class BaseUserAddressRequest(BaseModel):
     address: Optional[str] = None
     entrance: Optional[str] = None
-    floor: Optional[float] = None
+    floor: Optional[int] = None
     apartment: Optional[str] = None
 
     @field_validator("address")

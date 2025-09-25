@@ -1,5 +1,7 @@
 from decimal import Decimal
+from math import ceil
 from typing import Dict, List, Set
+
 from sqlalchemy import Tuple, and_, exists, select, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -166,12 +168,12 @@ class OrderRepository(IOrderRepository):
             address_id=address_id,
             order_action=order_request.selected_restaurant.action,
             status=OrderStatus.CREATED,
-            total_price=Decimal('0.0'),
+            total_price=0,
         )
         self._session.add(new_order)
         await self._session.flush()
         
-        total_price = Decimal('0.0')
+        total_price = 0
         order_items: List[OrderItem] = []
         total_quantity = 0
 
@@ -183,7 +185,7 @@ class OrderRepository(IOrderRepository):
             modifier = food_variant_obj.ingredient_price_modifier
 
             for adding in position.addings:
-                ingredients_price += ingredients_map[adding] * modifier
+                ingredients_price += ceil(ingredients_map[adding] * modifier)
 
             position_clear_price = food_variant_obj.price + ingredients_price
             position_total_price = position_clear_price * position.quantity

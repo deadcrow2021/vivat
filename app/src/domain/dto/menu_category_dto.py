@@ -19,12 +19,12 @@ class AddingItem(BaseModel):
     id: int
     name: str
     image_url: str
-    price: float
+    price: int
 
 
 class SizeInfo(BaseModel):
     measure_value: int
-    price: float
+    price: int
     price_multiplier: Optional[float]
 
 

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class BaseCityResponse(BaseModel):
     id: int
     food_id: int
-    price: float
+    price: int
     ingredient_price_modifier: float
     is_active: bool
 

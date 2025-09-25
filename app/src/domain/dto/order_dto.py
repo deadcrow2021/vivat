@@ -1,5 +1,4 @@
 from datetime import datetime
-from decimal import Decimal
 from enum import Enum
 import re
 from typing import List, Optional
@@ -25,7 +24,7 @@ class OrderStatus(Enum):
 
 class OrderedPosition(BaseModel):
     name: str = Field(..., max_length=500) # Проверить id of FoodVariant соответствует имени
-    price: Decimal = Field(..., ge=0, max_digits=10, decimal_places=2) # цена за 1 штуку, но буду сам считать на бэке (в localstorage могут поменять цены)
+    price: int = Field(..., ge=0) # цена за 1 штуку, но буду сам считать на бэке (в localstorage могут поменять цены)
     quantity: int
     size: int # id of FoodVariant
     addings: Optional[List[int]] = None # id of Adding
@@ -141,5 +140,5 @@ class CreateOrderResponse(BaseModel):
     address_id: int
     order_action: OrderAction
     status: OrderStatus
-    total_price: float
+    total_price: int
     unique_code : str

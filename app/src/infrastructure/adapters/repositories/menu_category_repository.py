@@ -109,7 +109,7 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
             size_info = [
                 SizeInfo(
                     measure_value=int(variant.characteristics[0].measure_value) if variant.characteristics else 0,
-                    price=float(variant.price),
+                    price=variant.price,
                     price_multiplier=float(variant.ingredient_price_modifier)
                 )
                 for variant in food.variants
@@ -124,7 +124,7 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
                         id=ingredient.id,
                         name=ingredient.name,
                         image_url=ingredient.image_url or "",
-                        price=float(ingredient.price)
+                        price=ingredient.price
                     )
                 )
 
@@ -212,7 +212,7 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
             size_info = [
                 SizeInfo(
                     measure_value=int(variant.characteristics[0].measure_value) if variant.characteristics else 0,
-                    price=float(variant.price),
+                    price=variant.price,
                     price_multiplier=float(variant.ingredient_price_modifier)
                 )
                 for variant in food.variants
@@ -226,7 +226,7 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
                         id=ingredient.id,
                         name=ingredient.name,
                         image_url=ingredient.image_url or "",
-                        price=float(ingredient.price)
+                        price=ingredient.price
                     )
                 )
 

@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 class AddOrderItemRequest(BaseModel):
     food_variant_id: int
     order_id: int
-    final_price: float
+    final_price: int
 
     @field_validator("food_variant_id")
     def validate_food_id(cls, v: Optional[int]):
@@ -36,4 +36,4 @@ class AddOrderItemResponse(BaseModel):
     id: int
     food_id: int
     order_id: int
-    final_price: float
+    final_price: int
