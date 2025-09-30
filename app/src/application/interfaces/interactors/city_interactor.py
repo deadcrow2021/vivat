@@ -13,20 +13,22 @@ class GetAllCitiesInteractor:
         self._city_repository = city_repository
 
     async def __call__(self) -> GetAllCitiesResponse:
-        try:
-            cities = await self._city_repository.get_cities()
-            data = [
-                    GetCityResponse(
-                        id=c.id,
-                        name=c.name,
-                        coordiantes=[float(c.latitude), float(c.longitude)]
-                    )
-                    for c in cities
-                ]
-            return GetAllCitiesResponse(data=data)
+        # try:
+        cities = await self._city_repository.get_cities()
+        data = [
+                GetCityResponse(
+                    id=c.id,
+                    name=c.name,
+                    coordinates=[float(c.latitude), float(c.longitude)]
+                )
+                for c in cities
+            ]
+        raise SQLAlchemyError('pizda')
+        
+        return GetAllCitiesResponse(data=data)
 
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить все города из базы данных")
+        # except SQLAlchemyError:
+        #     raise DatabaseException("Не удалось получить все города из базы данных")
 
 
 class GetCityInteractor:
@@ -45,7 +47,7 @@ class GetCityInteractor:
             return GetCityResponse(
                 id=city.id,
                 name=city.name,
-                coordiantes=[float(city.latitude), float(city.longitude)]
+                coordinates=[float(city.latitude), float(city.longitude)]
             )
         
         except SQLAlchemyError:
@@ -68,7 +70,7 @@ class AddCityInteractor:
             return AddCityResponse(
                 id=city.id,
                 name=city.name,
-                coordiantes=[float(city.latitude), float(city.longitude)]
+                coordinates=[float(city.latitude), float(city.longitude)]
             )
 
         except SQLAlchemyError:
@@ -95,7 +97,7 @@ class UpdateCityInteractor:
             return UpdateCityResponse(
                 id=updated_city.id,
                 name=updated_city.name,
-                coordiantes=[float(updated_city.latitude), float(updated_city.longitude)]
+                coordinates=[float(updated_city.latitude), float(updated_city.longitude)]
             )
 
         except SQLAlchemyError:

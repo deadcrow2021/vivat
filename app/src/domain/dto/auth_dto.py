@@ -49,9 +49,40 @@ class CreateUserResponse(BaseUserResponse):
 class LoginUserRequest(BaseUserRequest):
     pass
 
+
+class UserAddressModel(BaseModel):
+    id: Optional[int] = None
+    user_id: Optional[int] = None
+    address: Optional[str] = None
+    entrance: Optional[str] = None
+    floor: Optional[int] = None
+    apartment: Optional[str] = None
+    is_primary: Optional[bool] = None
+    is_removed: Optional[bool] = None
+
+class RestaurantModel(BaseModel):
+    id: Optional[int] = None
+    city_id: Optional[int] = None
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    has_delivery: Optional[bool] = None
+    has_takeaway: Optional[bool] = None
+    has_dine_in: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+class CityModel(BaseModel):
+    id: Optional[int] = None
+    name: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
 class LoginUserResponse(BaseUserResponse):
-    order_user_address_id: Optional[int] = None
-    order_restaurant_address_id: Optional[int] = None
+    last_order_user_address: Optional[UserAddressModel] = None
+    last_order_restaurant: Optional[RestaurantModel] = None
+    last_order_city: Optional[CityModel] = None
 
 
 class TokenResponse(BaseModel):

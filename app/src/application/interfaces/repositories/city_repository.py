@@ -1,11 +1,15 @@
 from abc import abstractmethod
-from typing import List, Protocol
+from typing import List, Optional, Protocol
 
 from src.domain.dto.city_dto import AddCityRequest, DeleteCityResponse, UpdateCityRequest
 from src.infrastructure.drivers.db.tables import City
 
 
 class ICityRepository(Protocol):
+    @abstractmethod
+    async def get_last_order_city(self, user_id: int) -> Optional[City]:
+        raise NotImplementedError
+
     @abstractmethod
     async def get_cities(self) -> List[City]:
         raise NotImplementedError

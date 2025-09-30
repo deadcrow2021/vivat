@@ -1,16 +1,37 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.dto.city_dto import AddCityRequest, DeleteCityResponse, UpdateCityRequest
 from src.infrastructure.exceptions import CityNotFoundError
 from src.application.interfaces.repositories.city_repository import ICityRepository
-from src.infrastructure.drivers.db.tables import City
+from src.infrastructure.drivers.db.tables import City, Order, Restaurant
 
 
-class CityRepository(ICityRepository): # TODO: add exceptions
+class CityRepository(ICityRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
+    async def get_last_order_city(self, user_id: int) -> Optional[City]:
+        city_query = (
+            select(City)
+            .join(
+                Restaurant,
+                City.id == Restaurant.city_id
+            )
+            .join(
+                Order,
+                Restaurant.id == Order.restaurant_id
+            )
+            .where(Order.user_id == user_id)
+            .order_by(Order.id.desc())
+            .limit(1)
+        )
+        city_result = await self._session.execute(city_query)
+        city = city_result.scalars().first()
+
+        return city
+
 
     async def get_cities(self) -> List[City]:
         city_query = select(City)

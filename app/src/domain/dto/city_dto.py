@@ -39,7 +39,7 @@ class BaseCityRequest(BaseModel):
 class BaseCityResponse(BaseModel):
     id: int
     name: str
-    coordiantes: List[float]
+    coordinates: List[float]
 
 
 # Get City

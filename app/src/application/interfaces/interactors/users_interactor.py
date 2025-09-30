@@ -25,4 +25,6 @@ class GetUserInteractor:
                 email=user.email
             )
         except SQLAlchemyError:
+            # if environment == 'development':
+            #     console_logger.error(traceback.format_exc())
             raise DatabaseException("Не удалось получить пользователя в бд")

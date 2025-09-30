@@ -14,7 +14,7 @@ router = APIRouter(prefix="/food_variant", tags=["Food Variant"])
 
 
 @router.get(
-    "/food_variant{food_id}",
+    "/{food_id}",
     status_code=status.HTTP_200_OK,
     response_model=List[FoodVariantResponse],
     responses={

@@ -6,10 +6,10 @@ from starlette import status
 from jose import JWTError, jwt
 
 from src.infrastructure.exceptions import UserNotFoundError
-from src.domain.dto.auth_dto import CreateUser, CreateUserResponse, CurrentUserDTO, LogOutResponse, LoginUserRequest, LoginUserResponse, LogInDTO, TokenResponse, UpdateUserResponse
+from src.domain.dto.auth_dto import CityModel, CreateUser, CreateUserResponse, CurrentUserDTO, LogOutResponse, LoginUserRequest, LoginUserResponse, LogInDTO, RestaurantModel, TokenResponse, UpdateUserResponse, UserAddressModel
 from src.application.exceptions import DatabaseException, IdNotValidError, TokenError, UnhandledException
 from src.application.interfaces.transaction_manager import ITransactionManager
-from src.application.interfaces.repositories import auth_repository, user_address_repository, restaurant_repository
+from src.application.interfaces.repositories import auth_repository, user_address_repository, restaurant_repository, city_repository
 from src.config import Config
 from src.logger import logger
 
@@ -50,12 +50,14 @@ class LoginUserInteractor:
         auth_repository: auth_repository.IAuthRepository,
         user_address_repository: user_address_repository.IUserAddressRepository,
         restaurant_repository: restaurant_repository.IRestaurantRepository,
+        city_repository: city_repository.ICityRepository,
         transaction_manager: ITransactionManager,
         config: Config
     ):
         self._auth_repository = auth_repository
         self._user_address_repository = user_address_repository
         self._restaurant_repository = restaurant_repository
+        self._city_repository = city_repository
         self._transaction_manager = transaction_manager
         self._config = config
 
@@ -67,10 +69,11 @@ class LoginUserInteractor:
         try:
             # TODO: Присылает что refresh токен не найден. Надо присылать Пользователь не зарегистрирован
             login_dto = await self._auth_repository.login_user(login_user_request, self._config)
-            user_dto = login_dto.user
+            user_id = login_dto.user.user_id
             
-            user_adress = await self._user_address_repository.get_primary_or_latest_address(user_dto.user_id)
-            restaurant_address = await self._restaurant_repository.get_restaurant_by_last_user_order(user_dto.user_id)
+            user_adress = await self._user_address_repository.get_primary_or_latest_address(user_id)
+            restaurant = await self._restaurant_repository.get_restaurant_by_last_user_order(user_id)
+            city = await self._city_repository.get_last_order_city(user_id)
             await self._transaction_manager.commit()
 
             # Access Token
@@ -92,11 +95,47 @@ class LoginUserInteractor:
                 samesite="Lax"
             )
 
+            if user_adress:
+                user_address_model = UserAddressModel(
+                    id=user_adress.id,
+                    user_id=user_adress.user_id,
+                    address=user_adress.address,
+                    entrance=user_adress.entrance,
+                    floor=user_adress.floor,
+                    apartment=user_adress.apartment,
+                    is_primary=user_adress.is_primary,
+                    is_removed=user_adress.is_removed
+                )
+
+            if restaurant:
+                restaurant_model = RestaurantModel(
+                    id=restaurant.id,
+                    city_id=restaurant.city_id,
+                    name=restaurant.name,
+                    phone=restaurant.phone.e164,
+                    address=restaurant.address,
+                    latitude=restaurant.latitude,
+                    longitude=restaurant.longitude,
+                    has_delivery=restaurant.has_delivery,
+                    has_takeaway=restaurant.has_takeaway,
+                    has_dine_in=restaurant.has_dine_in,
+                    is_active=restaurant.is_active,
+                )
+
+            if city:
+                city_model = CityModel(
+                    id=city.id,
+                    name=city.name,
+                    latitude=city.latitude,
+                    longitude=city.longitude
+                )
+
             return LoginUserResponse(
                 id=login_dto.user.user_id,
                 phone=login_dto.user.phone,
-                order_user_address_id=user_adress.id if user_adress else None,
-                order_restaurant_address_id=restaurant_address.id if restaurant_address else None
+                last_order_user_address=user_address_model if user_adress else None,
+                last_order_restaurant=restaurant_model if restaurant else None,
+                last_order_city=city_model if city else None,
             )
 
         except SQLAlchemyError:

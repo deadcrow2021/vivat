@@ -5,6 +5,7 @@ from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories.auth_repository import IAuthRepository
 from src.application.interfaces.repositories.user_address_repository import IUserAddressRepository
 from src.application.interfaces.repositories.restaurant_repository import IRestaurantRepository
+from src.application.interfaces.repositories.city_repository import ICityRepository
 from src.config import Config
 
 
@@ -33,6 +34,7 @@ class AuthInteractorProvider(Provider):
         auth_repository: IAuthRepository,
         user_address_repository: IUserAddressRepository,
         restaurant_repository: IRestaurantRepository,
+        city_repository: ICityRepository,
         transaction_manager: ITransactionManager,
         config: Config
     ) -> LoginUserInteractor:
@@ -40,6 +42,7 @@ class AuthInteractorProvider(Provider):
             auth_repository,
             user_address_repository,
             restaurant_repository,
+            city_repository,
             transaction_manager,
             config
         )

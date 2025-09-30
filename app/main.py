@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dishka.integrations.fastapi import setup_dishka
 from dishka import AsyncContainer
 
+from src.middleware import exception_middleware
 from src.exceptions import register_exception_handlers
 from src.ioc.ioc_main import create_container
 from src.config import Config, create_config
@@ -44,6 +45,8 @@ def setup_routers(app: FastAPI) -> None:
 
 
 def setup_middlewares(app: FastAPI, config: Config) -> None:
+    app.middleware("http")(exception_middleware)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors.get_allow_origins,

@@ -45,7 +45,7 @@ class HomeData(BaseModel):
 
 
 class HomePageResponse(BaseModel):
-    date: Optional[HomeData] = None
+    data: Optional[HomeData] = None
 
 
 ### Add categoty to restaurant

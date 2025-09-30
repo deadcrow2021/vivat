@@ -48,7 +48,7 @@ class GetMenuCategoryInteractor:
             ]
 
             return HomePageResponse(
-                date=HomeData(
+                data=HomeData(
                     categories=category_items,
                     positions=positions
                 )
@@ -106,7 +106,7 @@ class GetRestaurantMenuCategoryInteractor:
             ]
 
             return HomePageResponse(
-                date=HomeData(
+                data=HomeData(
                     categories=category_items,
                     positions=positions
                 )

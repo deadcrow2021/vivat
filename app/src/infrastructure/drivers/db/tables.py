@@ -89,15 +89,16 @@ class City(Base):
     __tablename__ = "city"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    restaurants: Mapped[list["Restaurant"]] = relationship(
-        "Restaurant", back_populates="city", cascade="all, delete-orphan"
-    )
     latitude: Mapped[Optional[float]] = mapped_column(
         Numeric(9, 6), nullable=True
     )  # Широта
     longitude: Mapped[Optional[float]] = mapped_column(
         Numeric(9, 6), nullable=True
     )  # Долгота
+
+    restaurants: Mapped[list["Restaurant"]] = relationship(
+        "Restaurant", back_populates="city", cascade="all, delete-orphan"
+    )
 
 
 class Feature(Base):
