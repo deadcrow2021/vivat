@@ -10,20 +10,18 @@ class GetFoodVariantInteractor:
         self._food_variant_repository = food_variant_repository
 
     async def __call__(self, food_id: int):
-        try:
-            if food_id < 1:
-                raise IdNotValidError
-            food = await self._food_variant_repository.get_variants_by_food_id(food_id)
-            return [
-                FoodVariantResponse(
-                    id=fv.id,
-                    food_id=fv.food_id,
-                    price=fv.price,
-                    ingredient_price_modifier=fv.ingredient_price_modifier,
-                    is_active=fv.is_active,
-                )
-                for fv in food
-            ]
-        
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось добавить характеристику блюда к блюду в бд")
+        if food_id < 1:
+            raise IdNotValidError
+
+        food = await self._food_variant_repository.get_variants_by_food_id(food_id)
+
+        return [
+            FoodVariantResponse(
+                id=fv.id,
+                food_id=fv.food_id,
+                price=fv.price,
+                ingredient_price_modifier=fv.ingredient_price_modifier,
+                is_active=fv.is_active,
+            )
+            for fv in food
+        ]

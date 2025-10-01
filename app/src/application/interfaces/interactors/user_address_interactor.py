@@ -13,25 +13,21 @@ class GetUserAddressInteractor:
         self._user_address_repository = user_address_repository
 
     async def __call__(self, user_id: int) -> GetUserAddress:
-        try:
-            if user_id < 1:
-                raise IdNotValidError
-            address_result = await self._user_address_repository.get_user_addresses_by_user_id(user_id)
+        if user_id < 1:
+            raise IdNotValidError
+        address_result = await self._user_address_repository.get_user_addresses_by_user_id(user_id)
 
-            return [
-                GetUserAddress(
-                    id=addr.id,
-                    address=addr.address,
-                    entrance=addr.entrance,
-                    floor=addr.floor,
-                    apartment=addr.apartment,
-                    is_primary=addr.is_primary
-                )
-                for addr in address_result
-            ]
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить адреса пользователя из базы данных")
+        return [
+            GetUserAddress(
+                id=addr.id,
+                address=addr.address,
+                entrance=addr.entrance,
+                floor=addr.floor,
+                apartment=addr.apartment,
+                is_primary=addr.is_primary
+            )
+            for addr in address_result
+        ]
 
 
 class AddUserAddressInteractor:
@@ -48,25 +44,21 @@ class AddUserAddressInteractor:
         user_id: int,
         user_address_request: AddUserAddressRequest
     ) -> AddUserAddressResponse:
-        try:
-            if user_id < 1:
-                raise IdNotValidError
+        if user_id < 1:
+            raise IdNotValidError
 
-            await self._user_address_repository.untag_user_addresses(user_id)
-            address = await self._user_address_repository.add_address_to_user_by_id(user_id, user_address_request)
-            await self._transaction_manager.commit()
+        await self._user_address_repository.untag_user_addresses(user_id)
+        address = await self._user_address_repository.add_address_to_user_by_id(user_id, user_address_request)
+        await self._transaction_manager.commit()
 
-            return AddUserAddressResponse(
-                id=address.id,
-                address=address.address,
-                entrance=address.entrance,
-                floor=address.floor,
-                apartment=address.apartment,
-                is_primary=address.is_primary
-            )
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось добавить адрес пользователя в базу данных")
+        return AddUserAddressResponse(
+            id=address.id,
+            address=address.address,
+            entrance=address.entrance,
+            floor=address.floor,
+            apartment=address.apartment,
+            is_primary=address.is_primary
+        )
 
 
 class UpdateUserAddressInteractor:
@@ -84,27 +76,23 @@ class UpdateUserAddressInteractor:
         user_id: int,
         address_request: UpdateUserAddressRequest
     ) -> UpdateUserAddressResponse:
-        try:
-            if address_id < 1 or user_id < 1:
-                raise IdNotValidError
+        if address_id < 1 or user_id < 1:
+            raise IdNotValidError
 
-            if address_request.is_primary:
-                await self._user_address_repository.untag_user_addresses(user_id)
-            user_address = await self._user_address_repository.get_user_address_by_id(user_id, address_id)
-            address = await self._user_address_repository.update_user_address(user_address, address_request)
-            await self._transaction_manager.commit()
+        if address_request.is_primary:
+            await self._user_address_repository.untag_user_addresses(user_id)
+        user_address = await self._user_address_repository.get_user_address_by_id(user_id, address_id)
+        address = await self._user_address_repository.update_user_address(user_address, address_request)
+        await self._transaction_manager.commit()
 
-            return UpdateUserAddressResponse(
-                id=address.id,
-                address=address.address,
-                entrance=address.entrance,
-                floor=address.floor,
-                apartment=address.apartment,
-                is_primary=address.is_primary
-            )
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось обновить адрес пользователя в базе данных")
+        return UpdateUserAddressResponse(
+            id=address.id,
+            address=address.address,
+            entrance=address.entrance,
+            floor=address.floor,
+            apartment=address.apartment,
+            is_primary=address.is_primary
+        )
 
 
 class DeleteAddressInteractor:
@@ -117,14 +105,10 @@ class DeleteAddressInteractor:
         self._transaction_manager = transaction_manager
 
     async def __call__(self, user_id: int, address_id: int) -> DeleteAddressResponse:
-        try:
-            if address_id < 1 or user_id < 1:
-                raise IdNotValidError
+        if address_id < 1 or user_id < 1:
+            raise IdNotValidError
 
-            address = await self._user_address_repository.delete_address(user_id, address_id)
-            await self._transaction_manager.commit()
+        address = await self._user_address_repository.delete_address(user_id, address_id)
+        await self._transaction_manager.commit()
 
-            return address
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось удалить адрес пользователя в базе данных")
+        return address

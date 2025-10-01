@@ -25,20 +25,18 @@ class GetRestaurantInteractor:
     async def __call__(self, restaurant_id: int) -> GetRestaurantResponse:
         if restaurant_id < 1:
             raise IdNotValidError
-        try:
-            restaurant = await self._restaurant_repository.get_restaurant_by_id(restaurant_id)
-            return GetRestaurantResponse(
-                id=restaurant.id,
-                name=restaurant.name,
-                phone=restaurant.phone.e164,
-                address=restaurant.address,
-                coords=[float(restaurant.latitude), float(restaurant.longitude)],
-                working_hours=WorkingHoursModel(root=self._restaurant_repository._get_working_hours(restaurant)),
-                features=self._restaurant_repository._get_features(restaurant),
-                actions=self._restaurant_repository._get_allowed_actions(restaurant),
-            )
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить ресторан по id из бд")
+
+        restaurant = await self._restaurant_repository.get_restaurant_by_id(restaurant_id)
+        return GetRestaurantResponse(
+            id=restaurant.id,
+            name=restaurant.name,
+            phone=restaurant.phone.e164,
+            address=restaurant.address,
+            coords=[float(restaurant.latitude), float(restaurant.longitude)],
+            working_hours=WorkingHoursModel(root=self._restaurant_repository._get_working_hours(restaurant)),
+            features=self._restaurant_repository._get_features(restaurant),
+            actions=self._restaurant_repository._get_allowed_actions(restaurant),
+        )
 
 
 class GetCityRestaurantsInteractor:
@@ -53,12 +51,10 @@ class GetCityRestaurantsInteractor:
     async def __call__(self, city_id: int) -> GetCityRestaurantsResponse:
         if city_id < 1:
             raise IdNotValidError
-        try:
-            city = await self._city_repository.get_city_by_id(city_id)
-            restaurants_response: GetCityRestaurantsResponse = await self._restaurant_repository.get_city_restaurants(city)
-            return restaurants_response
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить рестораны города из бд")
+
+        city = await self._city_repository.get_city_by_id(city_id)
+        restaurants_response: GetCityRestaurantsResponse = await self._restaurant_repository.get_city_restaurants(city)
+        return restaurants_response
 
 
 class UpdateRestaurantInteractor:
@@ -77,16 +73,14 @@ class UpdateRestaurantInteractor:
     ) -> None:
         if restaurant_id < 1:
             raise IdNotValidError
-        try:
-            restaurant = await self._restaurant_repository.get_restaurant_by_id(restaurant_id)
-            restaurant_response = await self._restaurant_repository.update_restaurant(
-                restaurant,
-                restaurant_request
-            )
-            await self._transaction_manager.commit()
-            return restaurant_response
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось обновить ресторан из бд")
+
+        restaurant = await self._restaurant_repository.get_restaurant_by_id(restaurant_id)
+        restaurant_response = await self._restaurant_repository.update_restaurant(
+            restaurant,
+            restaurant_request
+        )
+        await self._transaction_manager.commit()
+        return restaurant_response
 
 
 class CreateRestaurantInteractor:
@@ -103,16 +97,14 @@ class CreateRestaurantInteractor:
     async def __call__(self, city_id: int, restaurant_request: AddRestaurantRequest):
         if city_id < 1:
             raise IdNotValidError
-        try:
-            city = await self._city_repository.get_city_by_id(city_id)
-            add_restaurant_response = await self._restaurant_repository.add_restaurant_to_city_by_id(
-                city, restaurant_request
-            )
-            await self._transaction_manager.commit()
 
-            return add_restaurant_response
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось добавить ресторан в бд")
+        city = await self._city_repository.get_city_by_id(city_id)
+        add_restaurant_response = await self._restaurant_repository.add_restaurant_to_city_by_id(
+            city, restaurant_request
+        )
+        await self._transaction_manager.commit()
+
+        return add_restaurant_response
 
 
 class DeleteRestaurantInteractor:
@@ -127,11 +119,9 @@ class DeleteRestaurantInteractor:
     async def __call__(self, restaurant_id: int) -> DeleteRestaurantResponse:
         if restaurant_id < 1:
             raise IdNotValidError
-        try:
-            restaurant = await self._restaurant_repository.get_restaurant_by_id(restaurant_id)
-            restaurant_response = await self._restaurant_repository.delete_restaurant(restaurant)
-            await self._transaction_manager.commit()
 
-            return restaurant_response
-        except SQLAlchemyError:
-                raise DatabaseException("Не удалось удалить ресторан из бд")
+        restaurant = await self._restaurant_repository.get_restaurant_by_id(restaurant_id)
+        restaurant_response = await self._restaurant_repository.delete_restaurant(restaurant)
+        await self._transaction_manager.commit()
+
+        return restaurant_response

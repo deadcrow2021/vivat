@@ -15,19 +15,16 @@ class GetAllIngredientsInteractor:
         self._ingredient_repository = ingredient_repository
 
     async def __call__(self) -> List[IngredientResponse]:
-        try:
-            ingredients = await self._ingredient_repository.get_available_ingredients()
-            return [
-                IngredientResponse(
-                    id=ingredient.id,
-                    name=ingredient.name,
-                    price=ingredient.price,
-                    image_url=ingredient.image_url
-                )
-                for ingredient in ingredients
-            ]
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить все ингредиенты в БД")
+        ingredients = await self._ingredient_repository.get_available_ingredients()
+        return [
+            IngredientResponse(
+                id=ingredient.id,
+                name=ingredient.name,
+                price=ingredient.price,
+                image_url=ingredient.image_url
+            )
+            for ingredient in ingredients
+        ]
 
 
 class GetMenuCategoryIngredientsInteractor:
@@ -37,20 +34,16 @@ class GetMenuCategoryIngredientsInteractor:
         self._ingredient_repository = ingredient_repository
 
     async def __call__(self, category_id: int) -> List[IngredientResponse]:
-        try:
-            if category_id < 1:
-                raise IdNotValidError
-            ingredients = await self._ingredient_repository.get_adding_ingredients_by_category_id(category_id)
+        if category_id < 1:
+            raise IdNotValidError
+        ingredients = await self._ingredient_repository.get_adding_ingredients_by_category_id(category_id)
 
-            return [
-                IngredientResponse(
-                    id=ingredient.id,
-                    name=ingredient.name,
-                    price=ingredient.price,
-                    image_url=ingredient.image_url
-                )
-                for ingredient in ingredients
-            ]
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить все ингредиенты из категории меню в БД")
+        return [
+            IngredientResponse(
+                id=ingredient.id,
+                name=ingredient.name,
+                price=ingredient.price,
+                image_url=ingredient.image_url
+            )
+            for ingredient in ingredients
+        ]

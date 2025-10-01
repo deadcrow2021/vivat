@@ -15,17 +15,14 @@ class GetFeatureInteractor:
     async def __call__(self, feature_id: int) -> GetFeatureResponse:
         if feature_id < 1:
             raise IdNotValidError
-        try:
-            feature = await self._feature_repository.get_feature_by_id(feature_id)
+            
+        feature = await self._feature_repository.get_feature_by_id(feature_id)
 
-            return GetFeatureResponse(
-                id=feature.id,
-                name=feature.name,
-                icon_url=feature.icon_url
-            )
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить фичу из базы данных")
+        return GetFeatureResponse(
+            id=feature.id,
+            name=feature.name,
+            icon_url=feature.icon_url
+        )
 
 
 class GetAllFeaturesInteractor:
@@ -35,20 +32,17 @@ class GetAllFeaturesInteractor:
         self._feature_repository = feature_repository
 
     async def __call__(self) -> GetAllFeaturesResponse:
-        try:
-            features = await self._feature_repository.get_features()
-            data = [
-                BaseFeatureResponse(
-                    id=feature.id,
-                    name=feature.name,
-                    icon_url=feature.icon_url
-                ) 
-                for feature in features
-            ]
-            return GetAllFeaturesResponse(data=data)
+        features = await self._feature_repository.get_features()
+        data = [
+            BaseFeatureResponse(
+                id=feature.id,
+                name=feature.name,
+                icon_url=feature.icon_url
+            ) 
+            for feature in features
+        ]
 
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить все фичи из базы данных")
+        return GetAllFeaturesResponse(data=data)
 
 
 class AddFeatureInteractor:
@@ -60,18 +54,14 @@ class AddFeatureInteractor:
         self._transaction_manager = transaction_manager
 
     async def __call__(self, feature_request: CreateFeatureRequest) -> CreateFeatureResponse:
-        try:
-            feature = await self._feature_repository.add_feature(feature_request)
-            await self._transaction_manager.commit()
+        feature = await self._feature_repository.add_feature(feature_request)
+        await self._transaction_manager.commit()
 
-            return CreateFeatureResponse(
-                id=feature.id,
-                name=feature.name,
-                icon_url=feature.icon_url
-            )
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось добавить фичу в базу данных")
+        return CreateFeatureResponse(
+            id=feature.id,
+            name=feature.name,
+            icon_url=feature.icon_url
+        )
 
 
 class DeleteFeatureInteractor:
@@ -86,12 +76,8 @@ class DeleteFeatureInteractor:
         if feature_id < 1:
             raise IdNotValidError
 
-        try:
-            feature = await self._feature_repository.get_feature_by_id(feature_id)
-            feature_response = await self._feature_repository.delete_feature(feature)
-            await self._transaction_manager.commit()
+        feature = await self._feature_repository.get_feature_by_id(feature_id)
+        feature_response = await self._feature_repository.delete_feature(feature)
+        await self._transaction_manager.commit()
 
-            return feature_response
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось удалить фичу из базы данных")
+        return feature_response

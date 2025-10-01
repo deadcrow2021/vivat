@@ -16,17 +16,13 @@ class AddCharacteristicsToVariantInteractor:
         self._transaction_manager = transaction_manager
 
     async def __call__(self, add_char_request: AddCharacteristicsToVariantRequest) -> AddCharacteristicsToVariantResponse:
-        try:
-            food_char = await self._food_characteristic_repository.add_characteristics_to_variant_by_id(
-                add_char_request.variant_id,
-                add_char_request.characteristic_value
-            )
+        food_char = await self._food_characteristic_repository.add_characteristics_to_variant_by_id(
+            add_char_request.variant_id,
+            add_char_request.characteristic_value
+        )
 
-            await self._transaction_manager.commit()
-            return AddCharacteristicsToVariantResponse(
-                id=food_char.id,
-                measure_value=food_char.measure_value
-            )
-        
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось добавить характеристику к варианту блюда в бд")
+        await self._transaction_manager.commit()
+        return AddCharacteristicsToVariantResponse(
+            id=food_char.id,
+            measure_value=food_char.measure_value
+        )

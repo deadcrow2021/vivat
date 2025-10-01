@@ -26,22 +26,19 @@ class RegisterUserInteractor:
         self._config = config
 
     async def __call__(self, user_create_request: CreateUser) -> CreateUserResponse:
-        try:
-            check_user = await self._auth_repository.get_user_by_phone(user_create_request.phone)
-            if check_user:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Пользователь с таким номером уже зарегистрирован"
-                )
-            user = await self._auth_repository.register_user(user_create_request, self._config)
-            await self._transaction_manager.commit()
-
-            return CreateUserResponse(
-                id=user.id,
-                phone=user.phone # TODO: Могут зарегать не свой телефон. Проверять ip
+        check_user = await self._auth_repository.get_user_by_phone(user_create_request.phone)
+        if check_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Пользователь с таким номером уже зарегистрирован"
             )
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось зарегистрировать пользователя в бд")
+        user = await self._auth_repository.register_user(user_create_request, self._config)
+        await self._transaction_manager.commit()
+
+        return CreateUserResponse(
+            id=user.id,
+            phone=user.phone # TODO: Могут зарегать не свой телефон. Проверять ip
+        )
 
 
 class LoginUserInteractor:
@@ -66,80 +63,76 @@ class LoginUserInteractor:
         login_user_request: LoginUserRequest,
         response: Response
         ) -> LoginUserResponse:
-        try:
-            # TODO: Присылает что refresh токен не найден. Надо присылать Пользователь не зарегистрирован
-            login_dto = await self._auth_repository.login_user(login_user_request, self._config)
-            user_id = login_dto.user.user_id
-            
-            user_adress = await self._user_address_repository.get_primary_or_latest_address(user_id)
-            restaurant = await self._restaurant_repository.get_restaurant_by_last_user_order(user_id)
-            city = await self._city_repository.get_last_order_city(user_id)
-            await self._transaction_manager.commit()
+        # TODO: Присылает что refresh токен не найден. Надо присылать Пользователь не зарегистрирован
+        login_dto = await self._auth_repository.login_user(login_user_request, self._config)
+        user_id = login_dto.user.user_id
+        
+        user_adress = await self._user_address_repository.get_primary_or_latest_address(user_id)
+        restaurant = await self._restaurant_repository.get_restaurant_by_last_user_order(user_id)
+        city = await self._city_repository.get_last_order_city(user_id)
+        await self._transaction_manager.commit()
 
-            # Access Token
-            response.set_cookie(
-                key=self._config.token.access_token_cookie_key,
-                value=login_dto.access_token,
-                httponly=True, # HttpOnly Cookie
-                max_age=self._config.token.access_token_expire_minutes * 60,
-                secure=_is_secure(self._config),
-                samesite="Lax"
-            )
-            # Refresh Token
-            response.set_cookie(
-                key=self._config.token.refresh_token_cookie_key,
-                value=login_dto.refresh_token,
-                httponly=True, # HttpOnly Cookie
-                max_age=self._config.token.refresh_token_expire_days * 24 * 3600,
-                secure=_is_secure(self._config),
-                samesite="Lax"
-            )
+        # Access Token
+        response.set_cookie(
+            key=self._config.token.access_token_cookie_key,
+            value=login_dto.access_token,
+            httponly=True, # HttpOnly Cookie
+            max_age=self._config.token.access_token_expire_minutes * 60,
+            secure=_is_secure(self._config),
+            samesite="Lax"
+        )
+        # Refresh Token
+        response.set_cookie(
+            key=self._config.token.refresh_token_cookie_key,
+            value=login_dto.refresh_token,
+            httponly=True, # HttpOnly Cookie
+            max_age=self._config.token.refresh_token_expire_days * 24 * 3600,
+            secure=_is_secure(self._config),
+            samesite="Lax"
+        )
 
-            if user_adress:
-                user_address_model = UserAddressModel(
-                    id=user_adress.id,
-                    user_id=user_adress.user_id,
-                    address=user_adress.address,
-                    entrance=user_adress.entrance,
-                    floor=user_adress.floor,
-                    apartment=user_adress.apartment,
-                    is_primary=user_adress.is_primary,
-                    is_removed=user_adress.is_removed
-                )
-
-            if restaurant:
-                restaurant_model = RestaurantModel(
-                    id=restaurant.id,
-                    city_id=restaurant.city_id,
-                    name=restaurant.name,
-                    phone=restaurant.phone.e164,
-                    address=restaurant.address,
-                    latitude=restaurant.latitude,
-                    longitude=restaurant.longitude,
-                    has_delivery=restaurant.has_delivery,
-                    has_takeaway=restaurant.has_takeaway,
-                    has_dine_in=restaurant.has_dine_in,
-                    is_active=restaurant.is_active,
-                )
-
-            if city:
-                city_model = CityModel(
-                    id=city.id,
-                    name=city.name,
-                    latitude=city.latitude,
-                    longitude=city.longitude
-                )
-
-            return LoginUserResponse(
-                id=login_dto.user.user_id,
-                phone=login_dto.user.phone,
-                last_order_user_address=user_address_model if user_adress else None,
-                last_order_restaurant=restaurant_model if restaurant else None,
-                last_order_city=city_model if city else None,
+        if user_adress:
+            user_address_model = UserAddressModel(
+                id=user_adress.id,
+                user_id=user_adress.user_id,
+                address=user_adress.address,
+                entrance=user_adress.entrance,
+                floor=user_adress.floor,
+                apartment=user_adress.apartment,
+                is_primary=user_adress.is_primary,
+                is_removed=user_adress.is_removed
             )
 
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось войти в систему в бд")
+        if restaurant:
+            restaurant_model = RestaurantModel(
+                id=restaurant.id,
+                city_id=restaurant.city_id,
+                name=restaurant.name,
+                phone=restaurant.phone.e164,
+                address=restaurant.address,
+                latitude=restaurant.latitude,
+                longitude=restaurant.longitude,
+                has_delivery=restaurant.has_delivery,
+                has_takeaway=restaurant.has_takeaway,
+                has_dine_in=restaurant.has_dine_in,
+                is_active=restaurant.is_active,
+            )
+
+        if city:
+            city_model = CityModel(
+                id=city.id,
+                name=city.name,
+                latitude=city.latitude,
+                longitude=city.longitude
+            )
+
+        return LoginUserResponse(
+            id=login_dto.user.user_id,
+            phone=login_dto.user.phone,
+            last_order_user_address=user_address_model if user_adress else None,
+            last_order_restaurant=restaurant_model if restaurant else None,
+            last_order_city=city_model if city else None,
+        )
 
 
 class UpdateAccessTokenInteractor:
@@ -152,52 +145,48 @@ class UpdateAccessTokenInteractor:
         self._config = config
 
     async def __call__(self, request: Request, response: Response) -> TokenResponse:
+        token_config = self._config.token
+        refresh_token = request.cookies.get(self._config.token.refresh_token_cookie_key)
+
+        if not refresh_token:
+            raise TokenError("Refresh токен не найден")
+
         try:
-            token_config = self._config.token
-            refresh_token = request.cookies.get(self._config.token.refresh_token_cookie_key)
-
-            if not refresh_token:
-                raise TokenError("Refresh токен не найден")
-
-            try:
-                # {'sub': '+79111111111', 'exp': 1758720000}
-                payload = jwt.decode(
-                    refresh_token,
-                    token_config.secret_key,
-                    algorithms=[token_config.algorithm]
-                )
-                user_phone: str = payload.get("sub")
-                expires: int = payload.get("exp")
-                if not user_phone:
-                    raise TokenError("Невалидный токен. Не удалось получить номер телефона из токена")
-                if not expires:
-                    raise TokenError("Невалидный токен. Не удалось получить время жизни токена")
-                if expires < datetime.now(timezone.utc).timestamp():
-                    raise TokenError("Невалидный токен. Токен просрочен")
-            except JWTError:
-                raise TokenError("Невалидный токен")
-            except Exception as e:
-                raise TokenError(f'Неизвестная ошибка токена: {str(e)}')
-
-            user_dto: LogInDTO = await self._auth_repository.update_access_token(user_phone, refresh_token, self._config)
-
-            # Access Token
-            response.set_cookie(
-                key=self._config.token.access_token_cookie_key,
-                value=user_dto.access_token,
-                httponly=True, # HttpOnly Cookie
-                max_age=self._config.token.access_token_expire_minutes * 60,
-                secure=_is_secure(self._config),
-                samesite="Lax"
+            # {'sub': '+79111111111', 'exp': 1758720000}
+            payload = jwt.decode(
+                refresh_token,
+                token_config.secret_key,
+                algorithms=[token_config.algorithm]
             )
-            # Генерация нового access токена
-            return UpdateUserResponse(
-                id=user_dto.user.user_id,
-                phone=user_dto.user.phone
-            )
+            user_phone: str = payload.get("sub")
+            expires: int = payload.get("exp")
+            if not user_phone:
+                raise TokenError("Невалидный токен. Не удалось получить номер телефона из токена")
+            if not expires:
+                raise TokenError("Невалидный токен. Не удалось получить время жизни токена")
+            if expires < datetime.now(timezone.utc).timestamp():
+                raise TokenError("Невалидный токен. Токен просрочен")
+        except JWTError:
+            raise TokenError("Невалидный токен")
+        except Exception as e:
+            raise TokenError(f'Неизвестная ошибка токена: {str(e)}')
 
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось обновить токен в бд")
+        user_dto: LogInDTO = await self._auth_repository.update_access_token(user_phone, refresh_token, self._config)
+
+        # Access Token
+        response.set_cookie(
+            key=self._config.token.access_token_cookie_key,
+            value=user_dto.access_token,
+            httponly=True, # HttpOnly Cookie
+            max_age=self._config.token.access_token_expire_minutes * 60,
+            secure=_is_secure(self._config),
+            samesite="Lax"
+        )
+        # Генерация нового access токена
+        return UpdateUserResponse(
+            id=user_dto.user.user_id,
+            phone=user_dto.user.phone
+        )
 
 
 class LogoutInteractor:
@@ -212,47 +201,43 @@ class LogoutInteractor:
         self._config = config
 
     async def __call__(self, request: Request, response: Response) -> LogOutResponse:
-        try:
-            tokens_revoked = 0
-            token_config = self._config.token
-            refresh_token = request.cookies.get(self._config.token.refresh_token_cookie_key)
+        tokens_revoked = 0
+        token_config = self._config.token
+        refresh_token = request.cookies.get(self._config.token.refresh_token_cookie_key)
 
-            if refresh_token:
-                try:
-                    payload = jwt.decode(
-                        refresh_token,
-                        token_config.secret_key,
-                        algorithms=[token_config.algorithm]
-                    )
-                    user_phone: str = payload.get("sub")
-                    if user_phone:
-                        tokens_revoked = await self._auth_repository.revoke_all_user_refresh_tokens(user_phone)
-                    await self._transaction_manager.commit()
+        if refresh_token:
+            try:
+                payload = jwt.decode(
+                    refresh_token,
+                    token_config.secret_key,
+                    algorithms=[token_config.algorithm]
+                )
+                user_phone: str = payload.get("sub")
+                if user_phone:
+                    tokens_revoked = await self._auth_repository.revoke_all_user_refresh_tokens(user_phone)
+                await self._transaction_manager.commit()
 
-                except JWTError:
-                    raise TokenError("Невалидный токен")
-                except Exception as e:
-                    raise TokenError(f'Неизвестная ошибка токена: {str(e)}')
+            except JWTError:
+                raise TokenError("Невалидный токен")
+            except Exception as e:
+                raise TokenError(f'Неизвестная ошибка токена: {str(e)}')
 
-            response.delete_cookie(
-                key=self._config.token.access_token_cookie_key,
-                httponly=True,
-                secure=_is_secure(self._config),
-                samesite="Lax"
-            )
-            response.delete_cookie(
-                key=self._config.token.refresh_token_cookie_key,
-                httponly=True,
-                secure=_is_secure(self._config),
-                samesite="Lax"
-            )
-            return LogOutResponse(
-                message="Logout success",
-                tokens_revoked=tokens_revoked
-            )
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось выйти из системы в бд")
+        response.delete_cookie(
+            key=self._config.token.access_token_cookie_key,
+            httponly=True,
+            secure=_is_secure(self._config),
+            samesite="Lax"
+        )
+        response.delete_cookie(
+            key=self._config.token.refresh_token_cookie_key,
+            httponly=True,
+            secure=_is_secure(self._config),
+            samesite="Lax"
+        )
+        return LogOutResponse(
+            message="Logout success",
+            tokens_revoked=tokens_revoked
+        )
 
 
 class GetCurrentUserInteractor:
@@ -265,39 +250,35 @@ class GetCurrentUserInteractor:
         self._config = config
 
     async def __call__(self, request: Request) -> CurrentUserDTO:
+        token_config = self._config.token
+        access_token = request.cookies.get(token_config.access_token_cookie_key)
+
+        if not access_token:
+            raise TokenError("Информация о пользователе не найдена. Необходимо войти в систему") # Access токен не найден
+
         try:
-            token_config = self._config.token
-
-            access_token = request.cookies.get(token_config.access_token_cookie_key)
-            if not access_token:
-                raise TokenError("Информация о пользователе не найдена. Необходимо войти в систему") # Access токен не найден
-
-            try:
-                # Декодируем токен
-                payload = jwt.decode(
-                    access_token,
-                    token_config.secret_key,
-                    algorithms=[token_config.algorithm]
-                )
-                phone: str = payload.get("sub")
-                if not phone:
-                    raise TokenError("Невалидный токен. Не удалось получить номер телефона из токена")
-
-            except JWTError:
-                raise TokenError("Невалидный токен")
-
-            # Получаем пользователя из репозитория
-            user = await self._auth_repository.get_user_by_phone(phone)
-            if not user:
-                raise UserNotFoundError
-
-            return CurrentUserDTO(
-                id=user.id,
-                phone=user.phone.e164
+            # Декодируем токен
+            payload = jwt.decode(
+                access_token,
+                token_config.secret_key,
+                algorithms=[token_config.algorithm]
             )
+            phone: str = payload.get("sub")
+            if not phone:
+                raise TokenError("Невалидный токен. Не удалось получить номер телефона из токена")
 
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить пользователя из токена в базы данных")
+        except JWTError:
+            raise TokenError("Невалидный токен")
+
+        # Получаем пользователя из репозитория
+        user = await self._auth_repository.get_user_by_phone(phone)
+        if not user:
+            raise UserNotFoundError
+
+        return CurrentUserDTO(
+            id=user.id,
+            phone=user.phone.e164
+        )
 
 
 def _is_secure(config: Config):

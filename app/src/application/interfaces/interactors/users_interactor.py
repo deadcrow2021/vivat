@@ -15,16 +15,12 @@ class GetUserInteractor:
     async def __call__(self, user_id: int) -> GetUserResponse:
         if user_id < 1:
             raise IdNotValidError
-        try:
-            user = await self._users_repository.get_user_by_id(user_id)
-            
-            return GetUserResponse(
-                id=user.id,
-                name=user.name,
-                phone=user.phone.e164,
-                email=user.email
-            )
-        except SQLAlchemyError:
-            # if environment == 'development':
-            #     console_logger.error(traceback.format_exc())
-            raise DatabaseException("Не удалось получить пользователя в бд")
+
+        user = await self._users_repository.get_user_by_id(user_id)
+        
+        return GetUserResponse(
+            id=user.id,
+            name=user.name,
+            phone=user.phone.e164,
+            email=user.email
+        )

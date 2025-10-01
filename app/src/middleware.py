@@ -22,6 +22,7 @@ async def exception_middleware(request: Request, call_next) -> Response:
         # Логируем ошибки БД, которые не были обработаны в интеракторах
         logger.error(f"Log Database error: --> {str(exc)} <--")
         logger.debug(f"Log Database error traceback: --> {traceback.format_exc()} <--")
+
         if environment == "development":
             return JSONResponse(
                 status_code=500,

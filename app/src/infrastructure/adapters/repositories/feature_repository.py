@@ -23,17 +23,17 @@ class FeatureRepository(IFeatureRepository):
 
         return feature
 
+
     async def get_features(self) -> List[Feature]:
-        try:
-            feature_query = select(Feature)
-            feature_result = await self._session.execute(feature_query)
-            features = feature_result.scalars().all()
-            if not features:
-                raise FeatureNotFoundError()
-            return features
-        except SQLAlchemyError as e:
-            logger.error(e)
-            raise
+        feature_query = select(Feature)
+        feature_result = await self._session.execute(feature_query)
+        features = feature_result.scalars().all()
+
+        if not features:
+            raise FeatureNotFoundError()
+
+        return features
+
 
     async def add_feature(self, feature_request: CreateFeatureRequest) -> Feature:
         feature = Feature(
@@ -45,6 +45,7 @@ class FeatureRepository(IFeatureRepository):
         await self._session.flush()
 
         return feature
+
 
     async def delete_feature(self, feature: Feature) -> DeleteFeatureResponse:
         await self._session.delete(feature)

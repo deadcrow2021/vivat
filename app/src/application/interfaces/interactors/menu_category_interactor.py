@@ -19,43 +19,39 @@ class GetMenuCategoryInteractor:
         if category_id and category_id < 1:
             raise IdNotValidError
 
-        try:
-            # получаю список категорий
-            categories: List[MenuCategory] = await self._menu_category_repository.get_menu_categories(category_id)
+        # получаю список категорий
+        categories: List[MenuCategory] = await self._menu_category_repository.get_menu_categories(category_id)
 
-            # если передан id активной категории
-            if category_id:
-                current_category = next(
-                    (
-                        category for category in categories
-                        if category.id == category_id
-                    ),
-                    None
-                )
-            else:
-                # если id не передан, то беру первую категорию по display_order
-                current_category = categories[0]
-
-            positions = await self._menu_category_repository.get_menu_category_positions(current_category)
-
-            category_items = [
-                CategoryItem(
-                    id=category.id,
-                    name=category.name,
-                    need_addings=category.need_addings
-                )
-                for category in categories
-            ]
-
-            return HomePageResponse(
-                data=HomeData(
-                    categories=category_items,
-                    positions=positions
-                )
+        # если передан id активной категории
+        if category_id:
+            current_category = next(
+                (
+                    category for category in categories
+                    if category.id == category_id
+                ),
+                None
             )
+        else:
+            # если id не передан, то беру первую категорию по display_order
+            current_category = categories[0]
 
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить информацию о категории меню из базы данных")
+        positions = await self._menu_category_repository.get_menu_category_positions(current_category)
+
+        category_items = [
+            CategoryItem(
+                id=category.id,
+                name=category.name,
+                need_addings=category.need_addings
+            )
+            for category in categories
+        ]
+
+        return HomePageResponse(
+            data=HomeData(
+                categories=category_items,
+                positions=positions
+            )
+        )
 
 
 class GetRestaurantMenuCategoryInteractor:
@@ -74,46 +70,42 @@ class GetRestaurantMenuCategoryInteractor:
         if category_id and category_id < 1:
             raise IdNotValidError
 
-        try:
-            # Получаем категории для конкретного ресторана
-            categories = await self._menu_category_repository.get_restaurant_menu_categories(restaurant_id)
+        # Получаем категории для конкретного ресторана
+        categories = await self._menu_category_repository.get_restaurant_menu_categories(restaurant_id)
 
-            # Выбираем текущую категорию
-            if category_id:
-                current_category = next(
-                    (category for category in categories if category.id == category_id),
-                    None
-                )
-                if not current_category:
-                    raise ValueError(f"Категория с id {category_id} не найдена")
-            else:
-                current_category = categories[0]
-
-            # Получаем позиции для текущей категории с учетом отключенных блюд
-            positions = await self._menu_category_repository.get_restaurant_menu_category_positions(
-                restaurant_id,
-                current_category
+        # Выбираем текущую категорию
+        if category_id:
+            current_category = next(
+                (category for category in categories if category.id == category_id),
+                None
             )
+            if not current_category:
+                raise ValueError(f"Категория с id {category_id} не найдена")
+        else:
+            current_category = categories[0]
 
-            # Формируем список категорий для ответа
-            category_items = [
-                CategoryItem(
-                    id=category.id,
-                    name=category.name,
-                    need_addings=category.need_addings
-                )
-                for category in categories
-            ]
+        # Получаем позиции для текущей категории с учетом отключенных блюд
+        positions = await self._menu_category_repository.get_restaurant_menu_category_positions(
+            restaurant_id,
+            current_category
+        )
 
-            return HomePageResponse(
-                data=HomeData(
-                    categories=category_items,
-                    positions=positions
-                )
+        # Формируем список категорий для ответа
+        category_items = [
+            CategoryItem(
+                id=category.id,
+                name=category.name,
+                need_addings=category.need_addings
             )
-        
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить информацию о категории меню указанного ресторана из базы данных")
+            for category in categories
+        ]
+
+        return HomePageResponse(
+            data=HomeData(
+                categories=category_items,
+                positions=positions
+            )
+        )
 
 
 class AddMenuCategoryInteractor:
@@ -129,14 +121,12 @@ class AddMenuCategoryInteractor:
         self,
         menu_category_request: AddMenuCategoryRequest
     ) -> AddMenuCategoryResponse:
-        try:
-            category = await self._menu_category_repository.add_menu_category(menu_category_request)
-            await self._transaction_manager.commit()
 
-            return AddMenuCategoryResponse(
-                id=category.id,
-                name=category.name,
-                display_order=category.display_order
-            )
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось добавить категорию меню в базу данных")
+        category = await self._menu_category_repository.add_menu_category(menu_category_request)
+        await self._transaction_manager.commit()
+
+        return AddMenuCategoryResponse(
+            id=category.id,
+            name=category.name,
+            display_order=category.display_order
+        )

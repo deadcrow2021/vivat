@@ -16,15 +16,12 @@ class AddOrderItemInteractor:
         self._transaction_manager = transaction_manager
 
     async def __call__(self, order_item_request: AddOrderItemRequest) -> AddOrderItemResponse:
-        try:
-            item: OrderItem = await self._order_item_repository.add_order_item_to_order_by_id(order_item_request)
-            await self._transaction_manager.commit()
+        item: OrderItem = await self._order_item_repository.add_order_item_to_order_by_id(order_item_request)
+        await self._transaction_manager.commit()
 
-            return AddOrderItemResponse(
-                id=item.id,
-                food_id=item.food_variant_id,
-                order_id=item.order_id,
-                final_price=item.final_price
-            )
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось обновить ресторан из бд")
+        return AddOrderItemResponse(
+            id=item.id,
+            food_id=item.food_variant_id,
+            order_id=item.order_id,
+            final_price=item.final_price
+        )

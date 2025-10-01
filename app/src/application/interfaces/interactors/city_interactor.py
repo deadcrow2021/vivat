@@ -13,7 +13,6 @@ class GetAllCitiesInteractor:
         self._city_repository = city_repository
 
     async def __call__(self) -> GetAllCitiesResponse:
-        # try:
         cities = await self._city_repository.get_cities()
         data = [
                 GetCityResponse(
@@ -23,12 +22,8 @@ class GetAllCitiesInteractor:
                 )
                 for c in cities
             ]
-        raise SQLAlchemyError('pizda')
-        
-        return GetAllCitiesResponse(data=data)
 
-        # except SQLAlchemyError:
-        #     raise DatabaseException("Не удалось получить все города из базы данных")
+        return GetAllCitiesResponse(data=data)
 
 
 class GetCityInteractor:
@@ -40,18 +35,14 @@ class GetCityInteractor:
     async def __call__(self, city_id: int) -> GetCityResponse:
         if city_id < 1:
             raise IdNotValidError
-        try:
 
-            city = await self._city_repository.get_city_by_id(city_id)
-            
-            return GetCityResponse(
-                id=city.id,
-                name=city.name,
-                coordinates=[float(city.latitude), float(city.longitude)]
-            )
+        city = await self._city_repository.get_city_by_id(city_id)
         
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить город из базы данных")
+        return GetCityResponse(
+            id=city.id,
+            name=city.name,
+            coordinates=[float(city.latitude), float(city.longitude)]
+        )
 
 
 class AddCityInteractor:
@@ -63,18 +54,14 @@ class AddCityInteractor:
         self._transaction_manager = transaction_manager
 
     async def __call__(self, city_request: AddCityRequest) -> AddCityResponse:
-        try:
-            city = await self._city_repository.add_city(city_request)
-            await self._transaction_manager.commit()
+        city = await self._city_repository.add_city(city_request)
+        await self._transaction_manager.commit()
 
-            return AddCityResponse(
-                id=city.id,
-                name=city.name,
-                coordinates=[float(city.latitude), float(city.longitude)]
-            )
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось добавить город в базу данных")
+        return AddCityResponse(
+            id=city.id,
+            name=city.name,
+            coordinates=[float(city.latitude), float(city.longitude)]
+        )
 
 
 class UpdateCityInteractor:
@@ -88,20 +75,16 @@ class UpdateCityInteractor:
     async def __call__(self, city_id: int, city_request: UpdateCityRequest) -> UpdateCityResponse:
         if city_id < 1:
             raise IdNotValidError
-        try:
 
-            city = await self._city_repository.get_city_by_id(city_id)
-            updated_city = await self._city_repository.update_city(city, city_request)
-            await self._transaction_manager.commit()
+        city = await self._city_repository.get_city_by_id(city_id)
+        updated_city = await self._city_repository.update_city(city, city_request)
+        await self._transaction_manager.commit()
 
-            return UpdateCityResponse(
-                id=updated_city.id,
-                name=updated_city.name,
-                coordinates=[float(updated_city.latitude), float(updated_city.longitude)]
-            )
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось обновить город в базе данных")
+        return UpdateCityResponse(
+            id=updated_city.id,
+            name=updated_city.name,
+            coordinates=[float(updated_city.latitude), float(updated_city.longitude)]
+        )
 
 
 class DeleteCityInteractor:
@@ -115,12 +98,9 @@ class DeleteCityInteractor:
     async def __call__(self, city_id: int) -> DeleteCityResponse:
         if city_id < 1:
             raise IdNotValidError
-        try:
-            city = await self._city_repository.get_city_by_id(city_id)
-            delete_city_response = await self._city_repository.delete_city(city)
-            await self._transaction_manager.commit()
 
-            return delete_city_response
-    
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось удалить город из базы данных")
+        city = await self._city_repository.get_city_by_id(city_id)
+        delete_city_response = await self._city_repository.delete_city(city)
+        await self._transaction_manager.commit()
+
+        return delete_city_response

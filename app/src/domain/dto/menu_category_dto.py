@@ -48,6 +48,9 @@ class HomePageResponse(BaseModel):
     data: Optional[HomeData] = None
 
 
+class GetMenuCategoriesResponse(BaseModel):
+    ...
+
 ### Add categoty to restaurant
 class AddCategoryToRestaurantRequest(BaseModel): # TODO: добавить эндпоинт по добавлению категории к ресторану
     restaurant_id: int

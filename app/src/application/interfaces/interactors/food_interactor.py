@@ -11,22 +11,18 @@ class GetFoodInteractor:
         self._food_repository = food_repository
 
     async def __call__(self, food_id: int):
-        try:
-            if food_id < 1:
-                raise IdNotValidError
-            food = await self._food_repository.get_food_by_id(food_id)
+        if food_id < 1:
+            raise IdNotValidError
+        food = await self._food_repository.get_food_by_id(food_id)
 
-            return GetFoodResponse(
-                id=food.id,
-                category_id=food.category_id,
-                name=food.name,
-                image_url=food.image_url,
-                description=food.description,
-                measure_name=food.measure_name,
-            )
-
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось получить блюдо из базы данных")
+        return GetFoodResponse(
+            id=food.id,
+            category_id=food.category_id,
+            name=food.name,
+            image_url=food.image_url,
+            description=food.description,
+            measure_name=food.measure_name,
+        )
 
 
 class AddFoodInteractor:
@@ -43,20 +39,16 @@ class AddFoodInteractor:
         menu_category_id: int,
         food_request: AddFoodRequest
     ) -> AddFoodResponse:
-        try:
-            if menu_category_id < 1:
-                raise IdNotValidError
-            food = await self._food_repository.add_food_to_category(menu_category_id, food_request)
-            await self._transaction_manager.commit()
+        if menu_category_id < 1:
+            raise IdNotValidError
+        food = await self._food_repository.add_food_to_category(menu_category_id, food_request)
+        await self._transaction_manager.commit()
 
-            return AddFoodResponse(
-                id=food.id,
-                category_id=food.category_id,
-                name=food.name,
-                image_url=food.image_url,
-                description=food.description,
-                measure_name=food.measure_name,
-            )
-        
-        except SQLAlchemyError:
-            raise DatabaseException("Не удалось добавить блюдо в категорию меню в базе данных")
+        return AddFoodResponse(
+            id=food.id,
+            category_id=food.category_id,
+            name=food.name,
+            image_url=food.image_url,
+            description=food.description,
+            measure_name=food.measure_name,
+        )

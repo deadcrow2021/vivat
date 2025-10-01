@@ -43,22 +43,19 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
         self._session = session
 
     async def get_restaurant_by_id(self, restaurant_id: int) -> Restaurant:
-        try:
-            stmt = (
-                select(Restaurant)
-                .where(Restaurant.id == restaurant_id)
-                .options(
-                    selectinload(Restaurant.working_hours),
-                    selectinload(Restaurant.features),
-                )
+        stmt = (
+            select(Restaurant)
+            .where(Restaurant.id == restaurant_id)
+            .options(
+                selectinload(Restaurant.working_hours),
+                selectinload(Restaurant.features),
             )
-            result = await self._session.execute(stmt)
-            restaurant = result.scalar_one_or_none()
-            if not restaurant:
-                raise RestaurantNotFoundError(id=restaurant_id)
-        except SQLAlchemyError as e:
-            logger.error(f"Не удалось получить ресторан: {e}")
-            raise
+        )
+        result = await self._session.execute(stmt)
+        restaurant = result.scalar_one_or_none()
+
+        if not restaurant:
+            raise RestaurantNotFoundError(id=restaurant_id)
 
         return restaurant
 
@@ -93,26 +90,22 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
         if city.latitude and city.longitude:
             response.data.center_coords = [float(city.latitude), float(city.longitude)]
 
-        try:
-            rest_query = (
-                select(Restaurant)
-                .where(
-                    Restaurant.city_id == city.id,
-                    Restaurant.is_active == True,
-                    or_(
-                        Restaurant.latitude.is_not(None), Restaurant.longitude.is_not(None)
-                    ),
-                )
-                .options(
-                    selectinload(Restaurant.working_hours),
-                    selectinload(Restaurant.features),
-                )
+        rest_query = (
+            select(Restaurant)
+            .where(
+                Restaurant.city_id == city.id,
+                Restaurant.is_active == True,
+                or_(
+                    Restaurant.latitude.is_not(None), Restaurant.longitude.is_not(None)
+                ),
             )
-            rest_result = await self._session.execute(rest_query)
-            restaurants = rest_result.scalars().all()
-        except SQLAlchemyError as e:
-            logger.error(f"Не удалось получить рестораны в городе: {e}")
-            raise
+            .options(
+                selectinload(Restaurant.working_hours),
+                selectinload(Restaurant.features),
+            )
+        )
+        rest_result = await self._session.execute(rest_query)
+        restaurants = rest_result.scalars().all()
 
         if not restaurants:
             raise RestaurantNotFoundError
