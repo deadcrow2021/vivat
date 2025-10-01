@@ -4,9 +4,9 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, field_validator
 
 
-class PromotionItem(BaseModel):
-    url: str
-    description: str
+# class PromotionItem(BaseModel):
+#     url: str
+#     description: str
 
 
 class CategoryItem(BaseModel):
@@ -15,41 +15,42 @@ class CategoryItem(BaseModel):
     need_addings: bool
 
 
-class AddingItem(BaseModel):
-    id: int
-    name: str
-    image_url: str
-    price: int
+# class AddingItem(BaseModel):
+#     id: int
+#     name: str
+#     image_url: str
+#     price: int
 
 
-class SizeInfo(BaseModel):
-    measure_value: int
-    price: int
-    price_multiplier: Optional[float]
+# class SizeInfo(BaseModel):
+#     measure_value: int
+#     price: int
+#     price_multiplier: Optional[float]
 
 
-class PositionItem(BaseModel):
-    id: int
-    name: str
-    image_url: str
-    description: str
-    measure_name: str
-    size: Optional[List[SizeInfo]] = None
-    ingredients: Optional[List[AddingItem]] = None
+# class PositionItem(BaseModel):
+#     id: int
+#     name: str
+#     image_url: str
+#     description: str
+#     measure_name: str
+#     size: Optional[List[SizeInfo]] = None
+#     ingredients: Optional[List[AddingItem]] = None
 
 
-class HomeData(BaseModel):
-    promotions: Optional[List[PromotionItem]] = None
-    categories: List[CategoryItem]
-    positions: Optional[List[PositionItem]] = None
+# class HomeData(BaseModel):
+#     promotions: Optional[List[PromotionItem]] = None
+#     categories: List[CategoryItem]
+#     positions: Optional[List[PositionItem]] = None
 
 
-class HomePageResponse(BaseModel):
-    data: Optional[HomeData] = None
+# class HomePageResponse(BaseModel):
+#     data: Optional[HomeData] = None
 
 
 class GetMenuCategoriesResponse(BaseModel):
-    ...
+    categories: List[CategoryItem]
+
 
 ### Add categoty to restaurant
 class AddCategoryToRestaurantRequest(BaseModel): # TODO: добавить эндпоинт по добавлению категории к ресторану
