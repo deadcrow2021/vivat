@@ -464,6 +464,16 @@ class UserAddress(Base):
     user: Mapped["User"] = relationship("User", back_populates="addresses")
     orders: Mapped[list["Order"]] = relationship("Order", back_populates="address")
 
+    def get_full_address(self) -> str:
+        address_parts = [
+            ("Адрес: " + self.address) if self.address else '',
+            "Вход: " + self.entrance if self.entrance else '',
+            "Этаж: " + self.floor if self.floor else '',
+            "Квартира: " + self.apartment if self.apartment else '',
+        ]
+        return ', '.join(x for x in address_parts if x)
+        
+
 
 class RefreshToken(Base):
     __tablename__ = "refresh_token"

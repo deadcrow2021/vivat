@@ -46,15 +46,12 @@ def setup_routers(app: FastAPI) -> None:
 
 def setup_middlewares(app: FastAPI, config: Config) -> None:
     app.middleware("http")(exception_middleware)
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors.get_allow_origins,
         allow_methods=config.cors.get_allow_methods,
         allow_headers=config.cors.get_allow_headers,
         allow_credentials=config.cors.get_allow_credentials,
-        # BaseHTTPMiddleware,
-        # SessionMiddleware(session_config=config.session)
     )
 
 

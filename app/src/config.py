@@ -32,6 +32,10 @@ class AppConfig(BaseSettings):
         return level
 
 
+class BotConfig(BaseSettings):
+    bot_api_key: str
+
+
 class CORSConfig(BaseSettings):
     allow_origins: str
     allow_methods: str
@@ -96,6 +100,7 @@ class ArgonConfig(BaseSettings):
 
 class Config(BaseModel):
     app: AppConfig
+    bot: BotConfig
     cors: CORSConfig
     token: TokenConfig
     argon2: ArgonConfig
@@ -105,6 +110,7 @@ class Config(BaseModel):
 def create_config() -> Config:
     return Config(
         app=AppConfig(),
+        bot=BotConfig(),
         cors=CORSConfig(),
         token=TokenConfig(),
         argon2=ArgonConfig(),
