@@ -1,12 +1,12 @@
 from decimal import Decimal
 from math import ceil
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 from sqlalchemy import Tuple, and_, exists, select, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.exceptions import RestaurantNotFoundError
+from src.infrastructure.exceptions import OrderNotFoundError, RestaurantNotFoundError
 from src.domain.dto.order_dto import OrderRequest, OrderAction, OrderStatus
 from src.application.interfaces.repositories.order_repository import IOrderRepository
 from src.infrastructure.drivers.db.tables import (
@@ -256,13 +256,6 @@ class OrderRepository(IOrderRepository):
                         )
                         await self._session.execute(assoc)
 
-
-        # return new_order
-    
-        # address_data
-        # food_variants
-        # ingredients_map[ingredient.id] = ingredient
-        
         data = {
             'delivery_address': delivery_address.get_full_address(),
             'total_price': total_price,
@@ -316,33 +309,6 @@ class OrderRepository(IOrderRepository):
 
         return data
 
-            # {
-            #     'Маргарита': [
-            #         {
-            #             'measure_name': 'см',
-            #             'measure_value': 40,
-            #             'price': 500,
-            #             'modifier': 1.5,
-            #             'quantity': 2,
-            #             'ingredients': {
-            #                 'add': {
-            #                     'сыр': {
-            #                         'quantity': 1,
-            #                         'price': 50
-            #                     },
-            #                     'помидоры': {
-            #                         'quantity': 2,
-            #                         'price': 30
-            #                     }
-            #                 },
-            #                 'remove': ['Колбаса', 'Грибы']
-            #             }
-            #         },
-            #         ...
-            #     ],
-            #     '4 Сыра': {...}
-            # }
-
 
     def _has_action(self, restaurant: Restaurant, restaurant_action: OrderAction) -> bool:
         if OrderAction.DELIVERY == restaurant_action and restaurant.has_delivery:
@@ -353,3 +319,19 @@ class OrderRepository(IOrderRepository):
             return True
 
         return False
+
+
+    async def update_order_status(self, order_id: int, new_status: OrderStatus) -> Order:
+        stmt = (
+            select(Order)
+            .where(Order.id == order_id)
+        )
+        result = await self._session.execute(stmt)
+        order: Optional[Order] = result.scalars().first()
+
+        if not order:
+            raise OrderNotFoundError(order_id)
+
+        order.status = new_status
+        await self._session.flush()
+        return order

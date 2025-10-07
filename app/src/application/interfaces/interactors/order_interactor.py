@@ -1,10 +1,12 @@
 import random
 import string
+from typing import Optional
 
-from app.src.domain.dto.auth_dto import CurrentUserDTO
-from src.domain.dto.order_dto import OrderRequest, CreateOrderResponse
+from src.domain.dto.auth_dto import CurrentUserDTO
+from src.domain.dto.order_dto import OrderRequest, CreateOrderResponse, OrderStatus
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import order_repository, user_address_repository
+from src.application.interfaces.notification.notifier import IOrderNotifier
 from src.logger import logger
 
 
@@ -13,11 +15,13 @@ class AddOrderInteractor:
         self,
         order_repository: order_repository.IOrderRepository,
         user_address_repository: user_address_repository.IUserAddressRepository,
-        transaction_manager: ITransactionManager
+        transaction_manager: ITransactionManager,
+        notifier: Optional[IOrderNotifier] = None
     ):
         self._order_repository = order_repository
         self._user_address_repository = user_address_repository
         self._transaction_manager = transaction_manager
+        self._notifier = notifier
 
     async def __call__(self, order_request: OrderRequest, user_dto: CurrentUserDTO) -> CreateOrderResponse:
         user_id = user_dto.id
@@ -46,7 +50,7 @@ class AddOrderInteractor:
         msg += f'Способ оплаты: {payment_method}.\n'
         msg += f'Телефон клиента: {user_dto.phone}.\n'
         msg += f'Адрес доставки: {order_data['delivery_address']}\n\n'
-        msg += f'Комментарий к заказу: {comment}\n' if comment else ''
+        msg += f'Комментарий к заказу: {comment}\n\n' if comment else ''
         
         for name, items_variations in order_data['order'].items():
             for item in items_variations:
@@ -78,6 +82,10 @@ class AddOrderInteractor:
 
         print(msg)
         logger.info(msg)
+
+        if self._notifier:
+            await self._notifier.send_new_order(order.restaurant_id, order.id, msg, order.status.value)
+
         return CreateOrderResponse(
             id=order.id,
             user_id=order.user_id,
@@ -94,3 +102,32 @@ class AddOrderInteractor:
         letter = random.choice(string.ascii_uppercase)
         digits = random.randint(100, 999)
         return f"{letter}{digits}"
+
+
+# class UpdateOrderStatusInteractor:
+#     def __init__(
+#         self,
+#         order_repository: order_repository.IOrderRepository,
+#         transaction_manager: ITransactionManager
+#     ):
+#         self._order_repository = order_repository
+#         self._transaction_manager = transaction_manager
+
+#     async def __call__(self, order_id: int, new_status: OrderStatus) -> CreateOrderResponse:
+#         if order_id < 1:
+#             raise IdNotValidError
+
+#         # Простейшие правила переходов: из CREATED -> IN_PROGRESS, IN_PROGRESS -> IN_DELIVERY|DONE, IN_DELIVERY -> DONE
+#         order = await self._order_repository.update_order_status(order_id, new_status)
+#         await self._transaction_manager.commit()
+
+#         return CreateOrderResponse(
+#             id=order.id,
+#             user_id=order.user_id,
+#             restaurant_id=order.restaurant_id,
+#             address_id=order.address_id,
+#             order_action=order.order_action,
+#             total_price=order.total_price,
+#             status=order.status,
+#             unique_code=""
+#         )

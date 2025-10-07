@@ -18,6 +18,7 @@ class OrderAction(Enum):
 class OrderStatus(Enum):
     CREATED = "created"
     IN_PROGRESS = "in_progress"
+    IN_DELIVERY = "in_delivery"
     DONE = "done"
     CANCELLED = "cancelled"
 

@@ -49,6 +49,7 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
             .options(
                 selectinload(Restaurant.working_hours),
                 selectinload(Restaurant.features),
+                selectinload(Restaurant.telegram_chats),
             )
         )
         result = await self._session.execute(stmt)

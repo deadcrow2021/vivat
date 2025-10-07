@@ -64,6 +64,14 @@ restaurant_feature_association = Table(
     Column("feature_id", Integer, ForeignKey("feature.id", ondelete="CASCADE")),
 )
 
+# Связь многие-ко-многим для ресторанов и телеграм-чатов
+restaurant_telegram_chat_association = Table(
+    "restaurant_telegram_chat",
+    Base.metadata,
+    Column("restaurant_id", Integer, ForeignKey("restaurant.id", ondelete="CASCADE")),
+    Column("chat_id", Integer, ForeignKey("telegram_chat.id", ondelete="CASCADE")),
+)
+
 # Таблица для отключения блюд
 restaurant_food_disabled = Table(
     "restaurant_food_disabled",
@@ -184,6 +192,11 @@ class Restaurant(Base):
     )
     disabled_foods: Mapped[list["Food"]] = relationship(
         secondary=restaurant_food_disabled, back_populates="disabled_in_restaurants"
+    )
+    telegram_chats: Mapped[list["TelegramChat"]] = relationship(
+        "TelegramChat",
+        secondary=restaurant_telegram_chat_association,
+        back_populates="restaurants",
     )
 
 
@@ -472,7 +485,6 @@ class UserAddress(Base):
             "Квартира: " + self.apartment if self.apartment else '',
         ]
         return ', '.join(x for x in address_parts if x)
-        
 
 
 class RefreshToken(Base):
@@ -485,3 +497,20 @@ class RefreshToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     # Связи
     user: Mapped["User"] = relationship("User", back_populates="refresh_tokens")
+
+
+class TelegramChat(Base):
+    __tablename__ = "telegram_chat"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    platform: Mapped[str] = mapped_column(String(50), default="telegram")
+    chat_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    title: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+
+    restaurants: Mapped[list["Restaurant"]] = relationship(
+        "Restaurant",
+        secondary=restaurant_telegram_chat_association,
+        back_populates="telegram_chats",
+    )

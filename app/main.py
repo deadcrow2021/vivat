@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import asynccontextmanager
 import sys
 
 import uvicorn
@@ -6,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dishka.integrations.fastapi import setup_dishka
 from dishka import AsyncContainer
+from telegram.ext import Application
 
 from src.middleware import exception_middleware
 from src.exceptions import register_exception_handlers
@@ -55,13 +57,51 @@ def setup_middlewares(app: FastAPI, config: Config) -> None:
     )
 
 
+async def start_telegram_bot(container: AsyncContainer):
+    """Запускает Telegram бота в фоновом режиме"""
+    try:
+        telegram_app: Application = await container.get(Application)
+        await telegram_app.initialize()
+        await telegram_app.start()
+        await telegram_app.updater.start_polling()
+
+        # Бесконечный цикл для поддержания работы бота
+        while True:
+            await asyncio.sleep(3600)  # Спим 1 час
+    except Exception as e:
+        print(f"Error starting Telegram bot: {e}")
+    finally:
+        if 'telegram_app' in locals():
+            await telegram_app.updater.stop()
+            await telegram_app.stop()
+            await telegram_app.shutdown()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Запускаем Telegram бота в фоне
+    container = app.state.dishka_container
+    bot_task = asyncio.create_task(start_telegram_bot(container))
+    
+    yield
+    
+    # Останавливаем бота при завершении
+    bot_task.cancel()
+    try:
+        await bot_task
+    except asyncio.CancelledError:
+        pass
+
+
 def create_application() -> FastAPI:
     config: Config = create_config()
     app: FastAPI = FastAPI(
+        lifespan=lifespan,
         debug=True if config.app.environment == "development" else False
     )
 
     container: AsyncContainer = create_container()
+    app.state.dishka_container = container
     setup_dishka(container, app)
     setup_middlewares(app, config)
     register_exception_handlers(app)

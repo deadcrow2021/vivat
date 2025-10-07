@@ -104,6 +104,13 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={"detail": str(exc)},
         )
 
+    @app.exception_handler(infra_exc.OrderNotFoundError)
+    async def order_not_found_handler(_: Request, exc: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": str(exc)},
+        )
+
     # APPLICATION EXCEPTION HANDLERS
 
     @app.exception_handler(app_exc.DatabaseException)

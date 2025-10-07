@@ -93,3 +93,10 @@ class UserAddressNotFoundError(InfrastructureError):
             msg = "Не удалось найти ни одного адреса пользователя"
         super().__init__(msg)
 
+
+class OrderNotFoundError(InfrastructureError):
+    def __init__(self, id: int = None) -> None:
+        msg = f"Не удалось найти заказ"
+        if id:
+            msg += f" с id: {id}"
+        super().__init__(msg)
