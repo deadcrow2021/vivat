@@ -23,6 +23,34 @@ class OrderStatus(Enum):
     CANCELLED = "cancelled"
 
 
+class IngredientModel(BaseModel):
+    name: str
+    price: Optional[int] = None
+    quantity: Optional[int] = None
+
+
+class OrderItemModel(BaseModel):
+    name: str # полное имя с характеристиками
+    quantity: int
+    price: int # цена позиции вместе с игредиентами * amount
+    add: List[IngredientModel]
+    remove: List[IngredientModel]
+
+
+class OrderModel(BaseModel):
+    order_items: List[OrderItemModel]
+    status: OrderStatus
+    delivery_address: str
+    positions_quantity: int
+    order_date: str
+    total_price: int
+    restaurant_phone: str
+
+
+class GetOrderResponse(BaseModel):
+    orders: List[OrderModel]
+
+
 class OrderedPosition(BaseModel):
     name: str = Field(..., max_length=500) # Проверить id of FoodVariant соответствует имени
     price: int = Field(..., ge=0) # цена за 1 штуку, но буду сам считать на бэке (в localstorage могут поменять цены)
@@ -125,6 +153,8 @@ class OrderRequest(BaseModel):
     @field_validator("cook_start")
     def validate_cook_start(cls, v):
         # Проверяем формат времени HH:MM
+        if v == 'asap':
+            return v
         if not re.match(r'^([01]\d|2[0-3]):[0-5]\d$', v):
             raise RequestValidationError('Начало готовки должен быть в формате HH:MM')
         return v

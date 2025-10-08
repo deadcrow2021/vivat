@@ -3,7 +3,7 @@ from math import ceil
 from typing import Dict, List, Optional, Set
 
 from sqlalchemy import Tuple, and_, exists, select, or_
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, contains_eager, aliased
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.exceptions import OrderNotFoundError, RestaurantNotFoundError
@@ -27,6 +27,49 @@ from src.infrastructure.drivers.db.tables import (
 class OrderRepository(IOrderRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
+    async def get_user_orders(self, user_id: int) -> List[Order]:
+        # Создаем алиасы для ингредиентов, чтобы избежать конфликта имен
+        AddedIngredient = aliased(Ingredient)
+        RemovedIngredient = aliased(Ingredient)
+        
+        stmt = (
+            select(Order)
+            .join(Order.restaurant)
+            .join(Order.address)
+            .join(Order.items)
+            .join(OrderItem.food_variant)
+            .join(FoodVariant.food)
+            .outerjoin(FoodVariant.characteristics)
+            # Явно указываем алиасы для JOIN с ингредиентами
+            .outerjoin(
+                OrderItem.added_ingredients.of_type(AddedIngredient)
+            )
+            .outerjoin(
+                OrderItem.removed_ingredients.of_type(RemovedIngredient)
+            )
+            .options(
+                contains_eager(Order.restaurant),
+                contains_eager(Order.address),
+                contains_eager(Order.items).options(
+                    contains_eager(OrderItem.food_variant).options(
+                        contains_eager(FoodVariant.food),
+                        contains_eager(FoodVariant.characteristics),
+                    ),
+                    contains_eager(OrderItem.added_ingredients.of_type(AddedIngredient)),
+                    contains_eager(OrderItem.removed_ingredients.of_type(RemovedIngredient)),
+                ),
+            )
+            .filter(Order.user_id == user_id)
+            .order_by(Order.created_at.desc())
+        )
+        
+        result = await self._session.execute(stmt)
+        orders = result.unique().scalars().all()
+        
+        return orders
+        
+
 
     async def create_order(
         self,
@@ -236,14 +279,18 @@ class OrderRepository(IOrderRepository):
             order_item = order_items[i]
 
             if position.addings:
-                for adding_id, _ in position.addings.items():
+                for adding_id, addings_amount in position.addings.items():
                     added_ingredient = ingredients_map.get(adding_id)
                     if added_ingredient:
-                        # Use session to create the association record
-                        assoc = order_item_added_ingredient.insert().values(
-                            order_item_id=order_item.id,
-                            added_id=added_ingredient.id
-                        )
+                        values = [
+                            {
+                                "order_item_id": order_item.id,
+                                "added_id": added_ingredient.id
+                            }
+                            for _ in range(addings_amount)
+                        ]
+                        # Один INSERT для всех записей
+                        assoc = order_item_added_ingredient.insert().values(values)
                         await self._session.execute(assoc)
 
             if position.removed_ingredients:

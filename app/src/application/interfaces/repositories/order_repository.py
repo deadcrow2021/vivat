@@ -7,6 +7,10 @@ from src.infrastructure.drivers.db.tables import Order
 
 class IOrderRepository(Protocol):
     @abstractmethod
+    async def get_user_orders(self, user_id: int) -> List[Order]:
+        raise NotImplementedError
+
+    @abstractmethod
     async def create_order(
         self,
         order_request: OrderRequest,

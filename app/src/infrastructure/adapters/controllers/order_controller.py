@@ -4,16 +4,34 @@ from fastapi import APIRouter, Request
 from starlette import status
 
 from src.application.interfaces.interactors.auth_interactor import GetCurrentUserInteractor
-from src.application.interfaces.interactors.order_interactor import AddOrderInteractor#, UpdateOrderStatusInteractor
-from src.domain.dto.order_dto import OrderRequest, CreateOrderResponse, OrderStatus
+from src.application.interfaces.interactors.order_interactor import AddOrderInteractor, GetUserOrdersInteractor#, UpdateOrderStatusInteractor
+from src.domain.dto.order_dto import GetOrderResponse, OrderRequest, CreateOrderResponse, OrderStatus
 
 
 router = APIRouter(prefix="/order", tags=["Order"])
 
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=GetOrderResponse,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"error": "Can't get user orders."},
+    },
+)
+@inject
+async def get_user_orders(
+    user: FromDishka[GetCurrentUserInteractor],
+    get_orders: FromDishka[GetUserOrdersInteractor],
+    request: Request
+):
+    user_dto = await user(request)
+    return await get_orders(user_dto.id)
+
+
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    # response_model=CreateOrderResponse,
+    response_model=CreateOrderResponse,
     responses={
         status.HTTP_400_BAD_REQUEST: {"error": "Order haven't been created."},
     },

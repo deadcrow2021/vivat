@@ -1,13 +1,114 @@
+from math import ceil
 import random
 import string
 from typing import Optional
 
+from src.application.exceptions import IdNotValidError
 from src.domain.dto.auth_dto import CurrentUserDTO
-from src.domain.dto.order_dto import OrderRequest, CreateOrderResponse, OrderStatus
+from src.domain.dto.order_dto import GetOrderResponse, IngredientModel, OrderItemModel, OrderModel, OrderRequest, CreateOrderResponse, OrderStatus
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import order_repository, user_address_repository
 from src.application.interfaces.notification.notifier import IOrderNotifier
 from src.logger import logger
+
+
+class GetUserOrdersInteractor:
+    def __init__(
+        self,
+        order_repository: order_repository.IOrderRepository,
+    ):
+        self._order_repository = order_repository
+
+    async def __call__(self, user_id: int) -> GetOrderResponse:
+        if user_id < 1:
+            raise IdNotValidError
+
+        orders = await self._order_repository.get_user_orders(user_id)
+        orders_list = []
+
+        for order in orders:
+            order_items = []
+            status = order.status
+            delivery_address = order.address.get_full_address()
+            order_date = order.created_at.strftime("%d.%m.%Y.")
+            total_price = order.total_price
+            restaurant_phone = order.restaurant.phone.e164
+
+            for item in order.items:
+                add_ingredients_dict = {}
+                add_list = []
+                remove_list = []
+
+                food_variant = item.food_variant
+                food = food_variant.food
+
+                price_modifier = food_variant.ingredient_price_modifier
+
+                measure_value = ''
+                if food_variant.characteristics:
+                    measure_value = food_variant.characteristics[0].measure_value
+                    if not measure_value:
+                        measure_value = ''
+
+                item_name = ' '.join(
+                    [
+                        x for x in
+                        [food.name, measure_value, food.measure_name]
+                        if x
+                    ]
+                )
+
+                for add_ingredient in item.added_ingredients:
+                    if add_ingredient.id in add_ingredients_dict:
+                        add_ingredients_dict[add_ingredient.id]['quantity'] += 1
+                    else:
+                        add_ingredients_dict[add_ingredient.id] = {
+                            'name': add_ingredient.name,
+                            'price': add_ingredient.price,
+                            'ingredient_obj' : add_ingredient,
+                            'quantity': 1
+                        }
+
+                for _, add_ingredient in add_ingredients_dict.items():
+                    price = add_ingredient['price']
+                    add_list.append(
+                        IngredientModel(
+                            name=add_ingredient['name'],
+                            price=ceil(price * price_modifier),
+                            quantity=add_ingredient['quantity'],
+                        )
+                    )
+
+                for remove in item.removed_ingredients:
+                    remove_list.append(
+                        IngredientModel(
+                            name=remove.name
+                        )
+                    )
+
+                order_items.append(
+                    OrderItemModel(
+                        name=item_name,
+                        quantity=item.quantity,
+                        price=food_variant.price,
+                        add=add_list,
+                        remove=remove_list
+                    )
+                )
+
+            orders_list.append(
+                OrderModel(
+                    order_items=order_items,
+                    status=status,
+                    delivery_address=delivery_address,
+                    positions_quantity=len(order_items),
+                    order_date=order_date,
+                    total_price=total_price,
+                    restaurant_phone=restaurant_phone,
+                )
+            )
+
+        return GetOrderResponse(orders=orders_list)
 
 
 class AddOrderInteractor:
@@ -16,7 +117,7 @@ class AddOrderInteractor:
         order_repository: order_repository.IOrderRepository,
         user_address_repository: user_address_repository.IUserAddressRepository,
         transaction_manager: ITransactionManager,
-        notifier: Optional[IOrderNotifier] = None
+        notifier: IOrderNotifier
     ):
         self._order_repository = order_repository
         self._user_address_repository = user_address_repository
@@ -46,7 +147,7 @@ class AddOrderInteractor:
             payment_method = 'Наличными'
 
         msg += f'Заказ № {unique_code}.\n'
-        msg += f'Время начала готовки: {cook_start}.\n'
+        msg += f'Время начала готовки: {"Как можно скорее" if cook_start == "asap" else cook_start}.\n'
         msg += f'Способ оплаты: {payment_method}.\n'
         msg += f'Телефон клиента: {user_dto.phone}.\n'
         msg += f'Адрес доставки: {order_data['delivery_address']}\n\n'
@@ -82,9 +183,7 @@ class AddOrderInteractor:
 
         print(msg)
         logger.info(msg)
-
-        if self._notifier:
-            await self._notifier.send_new_order(order.restaurant_id, order.id, msg, order.status.value)
+        await self._notifier.send_new_order(order.restaurant_id, order.id, msg, order.status.value)
 
         return CreateOrderResponse(
             id=order.id,
@@ -102,32 +201,3 @@ class AddOrderInteractor:
         letter = random.choice(string.ascii_uppercase)
         digits = random.randint(100, 999)
         return f"{letter}{digits}"
-
-
-# class UpdateOrderStatusInteractor:
-#     def __init__(
-#         self,
-#         order_repository: order_repository.IOrderRepository,
-#         transaction_manager: ITransactionManager
-#     ):
-#         self._order_repository = order_repository
-#         self._transaction_manager = transaction_manager
-
-#     async def __call__(self, order_id: int, new_status: OrderStatus) -> CreateOrderResponse:
-#         if order_id < 1:
-#             raise IdNotValidError
-
-#         # Простейшие правила переходов: из CREATED -> IN_PROGRESS, IN_PROGRESS -> IN_DELIVERY|DONE, IN_DELIVERY -> DONE
-#         order = await self._order_repository.update_order_status(order_id, new_status)
-#         await self._transaction_manager.commit()
-
-#         return CreateOrderResponse(
-#             id=order.id,
-#             user_id=order.user_id,
-#             restaurant_id=order.restaurant_id,
-#             address_id=order.address_id,
-#             order_action=order.order_action,
-#             total_price=order.total_price,
-#             status=order.status,
-#             unique_code=""
-#         )
