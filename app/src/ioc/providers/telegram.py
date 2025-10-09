@@ -1,6 +1,6 @@
 from dishka import provide, Provider, Scope, AsyncContainer
-from telegram import Bot
-from telegram.ext import Application, CallbackQueryHandler
+from telegram import Bot, Update
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
 from src.application.interfaces.interactors.handlers_interactor import BotHandlerInteractor
 from src.application.interfaces.repositories.restaurant_repository import IRestaurantRepository
@@ -27,7 +27,7 @@ class TelegramProvider(Provider):
 
 
     @provide(scope=Scope.REQUEST)
-    async def bot_handler_notifier(
+    async def bot_handler_interactor(
         self,
         order_repository: IOrderRepository,
         notifier: IOrderNotifier,
@@ -49,6 +49,9 @@ class TelegramProvider(Provider):
         # Сохраняем контейнер в данных бота для использования в обработчиках
         application.bot_data['container'] = container
 
+        # Добавляем обработчик команды /get_chat_id
+        application.add_handler(CommandHandler("get_chat_id", self._create_chat_id_handler()))
+
         # Добавляем обработчик callback запросов от кнопок заказа
         application.add_handler(
             CallbackQueryHandler(
@@ -64,6 +67,27 @@ class TelegramProvider(Provider):
         ))
 
         return application
+
+
+    def _create_chat_id_handler(self):
+        """Создает обработчик для команды /get_chat_id"""
+        async def chat_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            chat = update.effective_chat
+            chat_id = chat.id
+            chat_title = chat.title if chat.title else "личный чат"
+            chat_type = chat.type
+            
+            message = (
+                f"📋 Информация о чате:\n"
+                f"🆔 ID чата: <code>{chat_id}</code>\n"
+                f"📛 Название: {chat_title}\n"
+                f"🔰 Тип: {chat_type}\n\n"
+                f"💡 Этот ID можно использовать для настройки уведомлений о заказах"
+            )
+            
+            await update.message.reply_text(message, parse_mode='HTML')
+        
+        return chat_id_handler
 
 
     def _create_order_callback_handler(self):
