@@ -21,22 +21,31 @@ class AuthRepository(IAuthRepository):
 
 
     async def get_user_by_phone(self, phone: str) -> Optional[User]:
-        user_query = select(User).filter(User.phone == phone, User.is_removed == False)
+        user_query = select(User).filter(User.phone == phone)
         user_result = await self._session.execute(user_query)
         user = user_result.scalars().first()
 
         return user
 
 
-    async def register_user(self, created_user: CreateUser, config: Config) -> User:
-        self._raise_if_user_exists_by_phone(created_user)
+    async def register_user(
+        self,
+        created_user: CreateUser,
+        config: Config,
+        removed_user: Optional[User] = None
+    ) -> User:
+        if removed_user:
+            removed_user.set_password(created_user.password, config.argon2)
+            removed_user.is_removed = False
+            user = removed_user
+        else:
+            register_user = User(
+                phone=created_user.phone
+            )
+            register_user.set_password(created_user.password, config.argon2)
+            self._session.add(register_user)
+            user = register_user
 
-        user = User(
-            phone=created_user.phone
-        )
-        user.set_password(created_user.password, config.argon2)
-
-        self._session.add(user)
         await self._session.flush()
         return user
 
@@ -49,6 +58,9 @@ class AuthRepository(IAuthRepository):
         user_query = select(User).filter(User.phone == login_user_request.phone)
         user_result = await self._session.execute(user_query)
         user = user_result.scalars().first()
+
+        if user.is_removed:
+            raise InvalidCredentialsError # TODO: Правильно ли что будет сообщение "Неверные имя пользователя или пароль"
 
         if not user or not user.check_password(login_user_request.password):
             raise InvalidCredentialsError
@@ -166,15 +178,6 @@ class AuthRepository(IAuthRepository):
         refresh_token = refresh_token_result.scalars().first()
 
         return refresh_token
-
-
-    async def _raise_if_user_exists_by_phone(self, created_user: CreateUser) -> None:
-        user_phone_query = select(User).filter(User.phone == created_user.phone)
-        user_result = await self._session.execute(user_phone_query)
-        user = user_result.scalars().first()
-        
-        if user:
-            raise UserExistsError(created_user.phone)
 
 
     def _create_token(self, config: TokenConfig, data: dict, expires_delta: timedelta) -> str:

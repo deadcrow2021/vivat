@@ -14,3 +14,7 @@ class BaseUserResponse(PhoneValidatorMixin, BaseModel):
 
 class GetUserResponse(BaseUserResponse):
     pass
+
+
+class DeleteUserResponse(BaseModel):
+    id: int

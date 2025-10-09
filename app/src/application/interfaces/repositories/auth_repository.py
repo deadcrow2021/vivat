@@ -12,7 +12,7 @@ class IAuthRepository(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    async def register_user(self, created_user: CreateUser, config: Config) -> User:
+    async def register_user(self, created_user: CreateUser, config: Config, removed_user: Optional[User] = None) -> User:
         raise NotImplementedError
 
     @abstractmethod

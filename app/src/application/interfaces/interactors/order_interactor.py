@@ -126,20 +126,15 @@ class AddOrderInteractor:
 
     async def __call__(self, order_request: OrderRequest, user_dto: CurrentUserDTO) -> CreateOrderResponse:
         user_id = user_dto.id
-        # TODO: возможно убрать отмечание адреса is_primary,
-        # так при выборе адреса он уже делается is_primary
         order_data = await self._order_repository.create_order(order_request, user_id)
-        await self._user_address_repository.untag_user_addresses(user_id)
-        await self._user_address_repository.tag_user_address(user_id, order_request.user_info.address_id)
-
         await self._transaction_manager.commit()
 
         order = order_data['order_obj']
-        msg = ''
         unique_code = self._generate_unique_code()
         cook_start = order_request.cook_start
         comment = order_request.comment
         count = 1
+        msg = ''
 
         if order_request.payment_method == 'card':
             payment_method = 'По карте'

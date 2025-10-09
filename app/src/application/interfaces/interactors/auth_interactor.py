@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, Request, Response
+from phonenumbers import PhoneNumber
 from sqlalchemy.exc import SQLAlchemyError
 from starlette import status
 from jose import JWTError, jwt
@@ -28,16 +29,23 @@ class RegisterUserInteractor:
     async def __call__(self, user_create_request: CreateUser) -> CreateUserResponse:
         check_user = await self._auth_repository.get_user_by_phone(user_create_request.phone)
         if check_user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Пользователь с таким номером уже зарегистрирован"
-            )
-        user = await self._auth_repository.register_user(user_create_request, self._config)
+            if not check_user.is_removed:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Пользователь с таким номером уже зарегистрирован"
+                )
+
+        user = await self._auth_repository.register_user(user_create_request, self._config, check_user)
         await self._transaction_manager.commit()
+        
+        if isinstance(user.phone, PhoneNumber):
+            phone = user.phone.e164
+        else:
+            phone = user.phone
 
         return CreateUserResponse(
             id=user.id,
-            phone=user.phone # TODO: Могут зарегать не свой телефон. Проверять ip
+            phone=phone # TODO: Могут зарегать не свой телефон. Проверять ip
         )
 
 

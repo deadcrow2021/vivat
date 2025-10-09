@@ -19,3 +19,14 @@ class UsersRepository(IUsersRepository):
             raise UserNotFoundError(id=user_id)
 
         return user
+
+
+    async def delete_user(self, user_id: int) -> User:
+        user = await self._session.get(User, user_id)
+        if not user:
+            raise UserNotFoundError(id=user_id)
+
+        user.is_removed = True
+
+        await self._session.flush()
+        return user
