@@ -20,6 +20,17 @@ class UsersRepository(IUsersRepository):
 
         return user
 
+    async def get_user_by_phone(self, phone: str) -> User:
+        stmt = (
+            select(User)
+            .where(
+                User.phone == phone
+            )
+        )
+        user_result = await self._session.execute(stmt)
+        user = user_result.scalars().first()
+        return user
+
 
     async def delete_user(self, user_id: int) -> User:
         user = await self._session.get(User, user_id)
@@ -27,6 +38,13 @@ class UsersRepository(IUsersRepository):
             raise UserNotFoundError(id=user_id)
 
         user.is_removed = True
+
+        await self._session.flush()
+        return user
+
+
+    async def ban_user(self, user: User):
+        user.is_banned = True
 
         await self._session.flush()
         return user

@@ -2,11 +2,13 @@ from dishka import provide, Provider, Scope, AsyncContainer
 from telegram import Bot, Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
+from src.application.interfaces.repositories.chat_repository import IChatRepository
+from src.application.interfaces.repositories.users_repository import IUsersRepository
 from src.application.interfaces.interactors.handlers_interactor import BotHandlerInteractor
 from src.application.interfaces.repositories.restaurant_repository import IRestaurantRepository
 from src.application.interfaces.repositories.order_repository import IOrderRepository
 from src.infrastructure.adapters.telegram.order_notifier import TelegramOrderNotifier
-from src.application.interfaces.notification.notifier import IOrderNotifier
+from src.application.interfaces.notification.notifier import INotifier
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.config import Config
 
@@ -22,18 +24,26 @@ class TelegramProvider(Provider):
         self,
         bot: Bot,
         restaurant_repository: IRestaurantRepository
-    ) -> IOrderNotifier:
+    ) -> INotifier:
         return TelegramOrderNotifier(bot, restaurant_repository)
 
 
     @provide(scope=Scope.REQUEST)
     async def bot_handler_interactor(
         self,
+        transaction_manager: ITransactionManager,
         order_repository: IOrderRepository,
-        notifier: IOrderNotifier,
-        transaction_manager: ITransactionManager        
+        users_repository: IUsersRepository,
+        chat_repository: IChatRepository,
+        notifier: INotifier,
     ) -> BotHandlerInteractor:
-        return BotHandlerInteractor(order_repository, notifier, transaction_manager)
+        return BotHandlerInteractor(
+            transaction_manager,
+            order_repository,
+            users_repository,
+            chat_repository,
+            notifier
+        )
 
 
     @provide(scope=Scope.APP)
@@ -52,6 +62,9 @@ class TelegramProvider(Provider):
         # Добавляем обработчик команды /get_chat_id
         application.add_handler(CommandHandler("get_chat_id", self._create_chat_id_handler()))
 
+        # Добавляем обработчик команды /ban
+        application.add_handler(CommandHandler("ban", self._create_ban_handler()))
+
         # Добавляем обработчик callback запросов от кнопок заказа
         application.add_handler(
             CallbackQueryHandler(
@@ -68,6 +81,18 @@ class TelegramProvider(Provider):
 
         return application
 
+    def _create_ban_handler(self):
+        """Создает обработчик для команды /ban"""
+        async def ban_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            # Получаем контейнер из данных бота
+            container = context.bot_data['container']
+            
+            # Создаем новый контекст запроса для обработки команды
+            async with container() as request_container:
+                handler: BotHandlerInteractor = await request_container.get(BotHandlerInteractor)
+                await handler.handle_ban_command(update, context)
+        
+        return ban_handler
 
     def _create_chat_id_handler(self):
         """Создает обработчик для команды /get_chat_id"""

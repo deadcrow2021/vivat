@@ -3,19 +3,25 @@ from telegram.ext import ContextTypes
 
 from src.domain.dto.order_dto import OrderStatus
 from src.application.interfaces.repositories.order_repository import IOrderRepository
-from src.application.interfaces.notification.notifier import IOrderNotifier
+from src.application.interfaces.repositories.chat_repository import IChatRepository
+from src.application.interfaces.notification.notifier import INotifier
 from src.application.interfaces.transaction_manager import ITransactionManager
+from src.application.interfaces.repositories.users_repository import IUsersRepository
 
 
 class BotHandlerInteractor:
     def __init__(
         self,
-        order_repository: IOrderRepository,
-        notifier: IOrderNotifier,
         transaction_manager: ITransactionManager,
+        order_repository: IOrderRepository,
+        users_repository: IUsersRepository,
+        chat_repository: IChatRepository,
+        notifier: INotifier,
     ):
-        self._order_repository = order_repository
         self._transaction_manager = transaction_manager
+        self._order_repository = order_repository
+        self._users_repository = users_repository
+        self._chat_repository = chat_repository
         self._notifier = notifier
 
 
@@ -71,3 +77,69 @@ class BotHandlerInteractor:
             print(f"Error updating order status: {e}")
             await self._transaction_manager.rollback()
             await query.answer("Ошибка при обновлении статуса", show_alert=True)
+
+
+    async def handle_ban_command(
+        self,
+        update: Update, 
+        context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        """Обрабатывает команду /ban для блокировки пользователей по номеру телефона"""
+        chat_obj = update.effective_chat
+        chat_id = str(chat_obj.id)
+        
+        chat = await self._chat_repository.get_chat(chat_id)
+        if not chat:
+            await update.message.reply_text("❌ Этот чат не поддерживается")
+            return
+
+        # Проверяем, что команда вызвана в групповом чате
+        print('тип чата ', update.effective_chat.type)
+        if update.effective_chat.type not in ['group', 'supergroup']:
+            await update.message.reply_text("❌ Эта команда доступна только в групповых чатах")
+            return
+
+        # Проверяем, что пользователь является администратором
+        try:
+            chat_member = await context.bot.get_chat_member(
+                update.effective_chat.id, 
+                update.effective_user.id
+            )
+            print(chat_member.status)
+            if chat_member.status not in ['administrator', 'creator']:
+                await update.message.reply_text("❌ Только администраторы могут использовать эту команду")
+                return
+        except Exception as e:
+            print(f"Error checking admin status: {e}")
+            await update.message.reply_text("❌ Ошибка проверки прав администратора")
+            return
+
+        # Получаем номер телефона из аргументов команды
+        if not context.args:
+            await update.message.reply_text(
+                "ℹ️ Использование:\n"
+                "/ban +79XXXXXXXXX\n\n"
+                "Укажите номер телефона пользователя для блокировки"
+            )
+            return
+
+        phone = context.args[0].strip()
+
+        try:
+            # Банним пользователя в базе данных по номеру телефона
+            user = await self._users_repository.get_user_by_phone(phone)
+            if not user:
+                await update.message.reply_text("❌ Ошибка при блокировке пользователя. Пользователь не найден")
+                return
+
+            await self._users_repository.ban_user(user)
+            await self._transaction_manager.commit()
+
+            await update.message.reply_text(
+                f"✅ Пользователь с номером {phone} заблокирован в системе\n\n"
+                f"Теперь он не сможет создавать новые заказы."
+            )
+        except Exception as e:
+            print(f"Error banning user by phone: {e}")
+            await self._transaction_manager.rollback()
+            await update.message.reply_text("❌ Ошибка при блокировке пользователя")

@@ -33,7 +33,7 @@ class DeleteUserInteractor:
     ):
         self._users_repository = users_repository
         self._transaction_manager = transaction_manager
-  
+
 
     async def __call__(self, user_id: int) -> DeleteUserResponse:
         if user_id < 1:

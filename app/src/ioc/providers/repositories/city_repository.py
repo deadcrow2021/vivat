@@ -8,7 +8,7 @@ from src.infrastructure.adapters.repositories.city_repository import CityReposit
 class CityRepositryProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
-    async def get_restaurant_repository(
+    async def get_city_repository(
         self, session: AsyncSession
     ) -> ICityRepository:
         return CityRepository(session)

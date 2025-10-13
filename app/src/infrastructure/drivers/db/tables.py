@@ -421,6 +421,7 @@ class User(Base):
         String(), nullable=False, info={"hidden": True}
     )
     is_removed: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Связи
     addresses: Mapped[list["UserAddress"]] = relationship(

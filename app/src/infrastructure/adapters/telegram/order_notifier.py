@@ -2,11 +2,11 @@ from typing import List
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.error import BadRequest
 
-from src.application.interfaces.notification.notifier import IOrderNotifier
+from src.application.interfaces.notification.notifier import INotifier
 from src.application.interfaces.repositories.restaurant_repository import IRestaurantRepository
 
 
-class TelegramOrderNotifier(IOrderNotifier):
+class TelegramOrderNotifier(INotifier):
     def __init__(
         self,
         bot: Bot,
@@ -92,7 +92,7 @@ class TelegramOrderNotifier(IOrderNotifier):
             "created": "🆕 Создан",
             "in_progress": "👨‍🍳 В процессе",
             "in_delivery": "🚗 В доставке", 
-            "done": "✅ Завершен",
+            "done": "✅ Выполнено",
             "cancelled": "❌ Отмена",
         }
         return status_map.get(status, status)

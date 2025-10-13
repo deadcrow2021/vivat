@@ -14,7 +14,8 @@ from src.ioc.providers.repositories import (
     ingredient_repository,
     user_address_repository,
     order_repository,
-    order_item_repository
+    order_item_repository,
+    chat_repository
 )
 from src.ioc.providers.interactors import (
     restaurant_interactor,
@@ -68,6 +69,7 @@ def create_container() -> AsyncContainer:
         user_address_repository.UserAddressRepositryProvider(),
         order_repository.OrderRepositryProvider(),
         order_item_repository.OrderItemRepositryProvider(),
+        chat_repository.ChatRepositryProvider(),
         # Others
         ConfigProvider(),
         TelegramProvider(),

@@ -3,12 +3,13 @@ import random
 import string
 from typing import Optional
 
+from src.infrastructure.exceptions import UserNotFoundError
 from src.application.exceptions import IdNotValidError
 from src.domain.dto.auth_dto import CurrentUserDTO
 from src.domain.dto.order_dto import GetOrderResponse, IngredientModel, OrderItemModel, OrderModel, OrderRequest, CreateOrderResponse, OrderStatus
 from src.application.interfaces.transaction_manager import ITransactionManager
-from src.application.interfaces.repositories import order_repository, user_address_repository
-from src.application.interfaces.notification.notifier import IOrderNotifier
+from src.application.interfaces.repositories import order_repository, user_address_repository, users_repository
+from src.application.interfaces.notification.notifier import INotifier
 from src.logger import logger
 
 
@@ -115,18 +116,27 @@ class AddOrderInteractor:
     def __init__(
         self,
         order_repository: order_repository.IOrderRepository,
+        user_repository: users_repository.IUsersRepository,
         user_address_repository: user_address_repository.IUserAddressRepository,
         transaction_manager: ITransactionManager,
-        notifier: IOrderNotifier
+        notifier: INotifier
     ):
         self._order_repository = order_repository
+        self._user_repository = user_repository
         self._user_address_repository = user_address_repository
         self._transaction_manager = transaction_manager
         self._notifier = notifier
 
     async def __call__(self, order_request: OrderRequest, user_dto: CurrentUserDTO) -> CreateOrderResponse:
-        user_id = user_dto.id
-        order_data = await self._order_repository.create_order(order_request, user_id)
+        user = await self._user_repository.get_user_by_phone(user_dto.phone)
+        
+        if not user:
+            raise UserNotFoundError
+
+        if user.is_banned:
+            raise ValueError('Неизвестная ошибка при создании заказа. Попробуйте позже.')
+
+        order_data = await self._order_repository.create_order(order_request, user_dto.id)
         await self._transaction_manager.commit()
 
         order = order_data['order_obj']
