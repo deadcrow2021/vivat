@@ -9,7 +9,7 @@ from dishka.integrations.fastapi import setup_dishka
 from dishka import AsyncContainer
 from telegram.ext import Application
 
-from src.middleware import exception_middleware
+from src.middlewares import exception_middleware, transaction_middleware
 from src.exceptions import register_exception_handlers
 from src.ioc.ioc_main import create_container
 from src.config import Config, create_config
@@ -47,7 +47,6 @@ def setup_routers(app: FastAPI) -> None:
 
 
 def setup_middlewares(app: FastAPI, config: Config) -> None:
-    app.middleware("http")(exception_middleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors.get_allow_origins,
@@ -55,6 +54,8 @@ def setup_middlewares(app: FastAPI, config: Config) -> None:
         allow_headers=config.cors.get_allow_headers,
         allow_credentials=config.cors.get_allow_credentials,
     )
+    app.middleware("http")(transaction_middleware.transaction_middleware) # 1-й - оборачивает в транзакцию
+    app.middleware("http")(exception_middleware.exception_middleware) # затем 2-й - перехватывает все ошибки
 
 
 async def start_telegram_bot(container: AsyncContainer):
@@ -82,9 +83,9 @@ async def lifespan(app: FastAPI):
     # Запускаем Telegram бота в фоне
     container = app.state.dishka_container
     bot_task = asyncio.create_task(start_telegram_bot(container))
-    
+
     yield
-    
+
     # Останавливаем бота при завершении
     bot_task.cancel()
     try:
