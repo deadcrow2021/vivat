@@ -42,6 +42,18 @@ class RestaurantRepository(IRestaurantRepository): # TODO: add exceptions. Respo
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+
+    async def check_restaurant_exists(self, restaurant_id: int) -> Restaurant:
+        stmt = (
+            select(Restaurant)
+            .where(Restaurant.id == restaurant_id)
+        )
+        result = await self._session.execute(stmt)
+        restaurant = result.scalar_one_or_none()
+
+        return restaurant
+
+
     async def get_restaurant_by_id(self, restaurant_id: int) -> Restaurant:
         stmt = (
             select(Restaurant)

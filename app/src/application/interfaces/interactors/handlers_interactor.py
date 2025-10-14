@@ -74,7 +74,6 @@ class BotHandlerInteractor:
             )
 
         except Exception as e:
-            print(f"Error updating order status: {e}")
             await self._transaction_manager.rollback()
             await query.answer("Ошибка при обновлении статуса", show_alert=True)
 
@@ -94,7 +93,6 @@ class BotHandlerInteractor:
             return
 
         # Проверяем, что команда вызвана в групповом чате
-        print('тип чата ', update.effective_chat.type)
         if update.effective_chat.type not in ['group', 'supergroup']:
             await update.message.reply_text("❌ Эта команда доступна только в групповых чатах")
             return
@@ -105,12 +103,10 @@ class BotHandlerInteractor:
                 update.effective_chat.id, 
                 update.effective_user.id
             )
-            print(chat_member.status)
             if chat_member.status not in ['administrator', 'creator']:
                 await update.message.reply_text("❌ Только администраторы могут использовать эту команду")
                 return
         except Exception as e:
-            print(f"Error checking admin status: {e}")
             await update.message.reply_text("❌ Ошибка проверки прав администратора")
             return
 
@@ -140,6 +136,5 @@ class BotHandlerInteractor:
                 f"Теперь он не сможет создавать новые заказы."
             )
         except Exception as e:
-            print(f"Error banning user by phone: {e}")
             await self._transaction_manager.rollback()
             await update.message.reply_text("❌ Ошибка при блокировке пользователя")

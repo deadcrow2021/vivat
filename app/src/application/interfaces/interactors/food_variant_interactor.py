@@ -1,10 +1,10 @@
 from typing import Optional
-from sqlalchemy.exc import SQLAlchemyError
 
+from src.infrastructure.exceptions import RestaurantNotFoundError
 from src.infrastructure.drivers.db.tables import MenuCategory
 from src.domain.dto.food_variant_dto import FoodVariantResponse, PositionsResponse, PositionItem, SizeInfo, IngredientItem
 from src.application.exceptions import DatabaseException, IdNotValidError
-from src.application.interfaces.repositories import food_variant_repository, menu_category_repository
+from src.application.interfaces.repositories import food_variant_repository, menu_category_repository, restaurant_repository
 
 
 class GetFoodVariantInteractor:
@@ -33,18 +33,30 @@ class GetMenuCategoryPositionsIngredientsInteractor:
     def __init__(
         self,
         food_variant_repository: food_variant_repository.IFoodVariantRepository,
-        menu_category_repository: menu_category_repository.IMunuCategoryRepository
+        menu_category_repository: menu_category_repository.IMunuCategoryRepository,
+        restaurant_repository: restaurant_repository.IRestaurantRepository
     ):
         self._food_variant_repository = food_variant_repository
         self._menu_category_repository = menu_category_repository
+        self._restaurant_repository = restaurant_repository
 
-    async def __call__(self, category_id: int) -> PositionsResponse:
+    async def __call__(self, category_id: int, restaurant_id: Optional[int]) -> PositionsResponse:
         if category_id < 1:
             raise IdNotValidError
 
-        # получаю список категорий
+        if restaurant_id:
+            if restaurant_id < 1:
+                raise IdNotValidError
+            restaurant = await self._restaurant_repository.check_restaurant_exists(restaurant_id)
+            if not restaurant:
+                raise RestaurantNotFoundError(id=restaurant_id)
+
         category: MenuCategory = await self._menu_category_repository.get_menu_category_by_id(category_id)
-        category_info = await self._menu_category_repository.get_menu_category_positions(category)
+
+        if restaurant_id:
+            category_info: MenuCategory = await self._menu_category_repository.get_restaurant_menu_category_positions(category, restaurant_id)
+        else:
+            category_info = await self._menu_category_repository.get_menu_category_positions(category)
 
         if not category_info:
             return []

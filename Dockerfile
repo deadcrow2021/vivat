@@ -21,4 +21,4 @@ COPY . /server
 
 WORKDIR /server
 
-ENTRYPOINT ["gunicorn", "main:create_application()", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+ENTRYPOINT ["gunicorn", "main:create_application()", "--workers", "1", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]

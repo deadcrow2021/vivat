@@ -14,6 +14,10 @@ from src.domain.dto.restaurant_dto import (
 
 class IRestaurantRepository(Protocol):
     @abstractmethod
+    async def check_restaurant_exists(self, restaurant_id: int) -> Restaurant:
+        raise NotImplementedError
+
+    @abstractmethod
     async def get_restaurant_by_id(self, restaurant_id: int) -> Restaurant:
         raise NotImplementedError
 
