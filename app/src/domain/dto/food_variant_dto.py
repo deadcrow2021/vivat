@@ -22,6 +22,7 @@ class IngredientItem(BaseModel):
 
 
 class SizeInfo(BaseModel):
+    id: int
     measure_value: int
     price: int
     price_multiplier: Optional[float]
@@ -38,4 +39,4 @@ class PositionItem(BaseModel):
 
 
 class PositionsResponse(BaseModel):
-    positions: List[PositionItem]
+    positions: Optional[List[PositionItem]]

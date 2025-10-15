@@ -398,7 +398,7 @@ class OrderItem(Base):
 
     # Связи
     food_variant: Mapped["FoodVariant"] = relationship(back_populates="order_item")
-    order: Mapped[list["Order"]] = relationship(back_populates="items")
+    order: Mapped["Order"] = relationship(back_populates="items")
     added_ingredients: Mapped[list["Ingredient"]] = relationship(
         "Ingredient",
         secondary=order_item_added_ingredient,

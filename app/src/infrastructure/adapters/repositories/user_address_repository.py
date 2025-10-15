@@ -1,12 +1,13 @@
 from typing import List, Optional
 from sqlalchemy import select, or_, update
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, contains_eager
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.domain.dto.order_dto import OrderAction
 from src.infrastructure.exceptions import UserAddressNotFoundError
 from src.domain.dto.user_address_dto import AddUserAddressRequest, DeleteAddressResponse, UpdateUserAddressRequest
 from src.application.interfaces.repositories.user_address_repository import IUserAddressRepository
-from src.infrastructure.drivers.db.tables import UserAddress
+from src.infrastructure.drivers.db.tables import Order, UserAddress
 
 
 class UserAddressRepository(IUserAddressRepository):
@@ -71,13 +72,15 @@ class UserAddressRepository(IUserAddressRepository):
     async def get_primary_or_latest_address(self, user_id: int) -> Optional[UserAddress]:
         stmt = (
             select(UserAddress)
+            .join(Order, UserAddress.id == Order.address_id)
             .filter(
                 UserAddress.user_id == user_id,
-                UserAddress.is_removed == False
+                UserAddress.is_removed == False,
+                Order.order_action != OrderAction.INSIDE,
             )
             .order_by(
                 UserAddress.is_primary.desc(),  # Primary addresses first
-                UserAddress.id.desc()           # Latest address if no primary
+                Order.created_at.desc(),        # Latest order first
             )
             .limit(1)
         )

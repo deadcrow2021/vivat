@@ -59,7 +59,9 @@ class GetMenuCategoryPositionsIngredientsInteractor:
             category_info = await self._menu_category_repository.get_menu_category_positions(category)
 
         if not category_info:
-            return []
+            return PositionsResponse(
+            positions=[]
+        )
 
         positions = []
         for food in category.foods:
@@ -68,6 +70,7 @@ class GetMenuCategoryPositionsIngredientsInteractor:
 
             size_info = [
                 SizeInfo(
+                    id=variant.id,
                     measure_value=int(variant.characteristics[0].measure_value) if variant.characteristics and len(variant.characteristics) > 0 else 0,
                     price=variant.price,
                     price_multiplier=float(variant.ingredient_price_modifier) if variant.ingredient_price_modifier is not None else None
@@ -96,10 +99,10 @@ class GetMenuCategoryPositionsIngredientsInteractor:
                     description=food.description or "",
                     measure_name=food.measure_name or "",
                     size=size_info,
-                    ingredients=ingredients
+                    ingredients=ingredients if ingredients else None
                 )
             ) 
 
         return PositionsResponse(
-            positions=positions
+            positions=positions if positions else None
         )
