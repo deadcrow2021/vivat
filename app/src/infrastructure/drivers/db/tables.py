@@ -484,7 +484,7 @@ class UserAddress(Base):
         address_parts = [
             ("Адрес: " + self.address) if self.address else '',
             "Вход: " + self.entrance if self.entrance else '',
-            "Этаж: " + self.floor if self.floor else '',
+            "Этаж: " + str(self.floor) if self.floor else '',
             "Квартира: " + self.apartment if self.apartment else '',
         ]
         return ', '.join(x for x in address_parts if x)
