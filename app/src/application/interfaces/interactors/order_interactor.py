@@ -207,7 +207,7 @@ class AddOrderInteractor:
             id=order.id,
             user_id=order.user_id,
             restaurant_id=order.restaurant_id,
-            address_id=order.address_id,
+            address_id=order.address_id if order.address_id else None,
             order_action=order.order_action,
             total_price=order.total_price,
             status=order.status,

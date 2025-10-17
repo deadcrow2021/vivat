@@ -188,7 +188,7 @@ class CreateOrderResponse(BaseModel):
     id: int
     user_id: int
     restaurant_id: int
-    address_id: int
+    address_id: Optional[int] = None
     order_action: OrderAction
     status: OrderStatus
     total_price: int
