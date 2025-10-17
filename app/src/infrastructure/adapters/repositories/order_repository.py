@@ -76,7 +76,7 @@ class OrderRepository(IOrderRepository):
         order_request: OrderRequest,
         user_id: int
     ) -> Order:
-        address_id = order_request.user_info.address_id
+        address_id = order_request.user_info.address_id if order_request.user_info else None
         restaurant_id = order_request.selected_restaurant.id
         action = order_request.selected_restaurant.action
 
@@ -103,18 +103,19 @@ class OrderRepository(IOrderRepository):
             raise ValueError(f"Телефон {order_request.selected_restaurant.address} не совпадает с телефоном ресторана")
 
         # 2. Проверяем адрес
-        address_stmt = (
-            select(UserAddress)
-            .where(
-                UserAddress.id == address_id,
-                UserAddress.user_id == user_id
+        if address_id:
+            address_stmt = (
+                select(UserAddress)
+                .where(
+                    UserAddress.id == address_id,
+                    UserAddress.user_id == user_id
+                )
             )
-        )
-        address_result = await self._session.execute(address_stmt)
-        delivery_address = address_result.scalars().first()
+            address_result = await self._session.execute(address_stmt)
+            delivery_address = address_result.scalars().first()
 
-        if not delivery_address:
-            raise ValueError(f"Адрес пользователя с id {address_id} не найден")
+            if not delivery_address:
+                raise ValueError(f"Адрес пользователя с id {address_id} не найден")
 
         # 3. Собираем ID для batch-запросов
         food_variant_ids = {position.size for position in order_request.order_list}
@@ -230,7 +231,7 @@ class OrderRepository(IOrderRepository):
         new_order = Order(
             user_id=user_id,
             restaurant_id=restaurant_id,
-            address_id=address_id,
+            address_id=address_id if address_id else None,
             order_action=order_request.selected_restaurant.action,
             status=OrderStatus.CREATED,
             total_price=0,
@@ -304,7 +305,7 @@ class OrderRepository(IOrderRepository):
                         await self._session.execute(assoc)
 
         data = {
-            'delivery_address': delivery_address.get_full_address(),
+            'delivery_address': delivery_address.get_full_address() if address_id else None,
             'total_price': total_price,
             'order': {},
             'order_obj': new_order

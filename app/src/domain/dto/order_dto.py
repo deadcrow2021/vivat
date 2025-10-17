@@ -40,7 +40,7 @@ class OrderItemModel(BaseModel):
 class OrderModel(BaseModel):
     order_items: List[OrderItemModel]
     status: OrderStatus
-    delivery_address: str
+    delivery_address: Optional[str] = None
     positions_quantity: int
     order_date: str
     total_price: int

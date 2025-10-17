@@ -30,7 +30,7 @@ class GetUserOrdersInteractor:
         for order in orders:
             order_items = []
             status = order.status
-            delivery_address = order.address.get_full_address()
+            delivery_address = order.address.get_full_address() if order.address else None
             order_date = order.created_at.strftime("%d.%m.%Y.")
             total_price = order.total_price
             restaurant_phone = order.restaurant.phone.e164
@@ -151,6 +151,14 @@ class AddOrderInteractor:
         count = 1
         msg = ''
 
+        if action == OrderAction.DELIVERY:
+            order_type = f'Адрес доставки: {order_data['delivery_address']}\n\n'
+        elif action == OrderAction.TAKEAWAY:
+            order_type = f'Тип заказа: Самовывоз\n\n'
+        elif action == OrderAction.INSIDE:
+            order_type = f'Тип заказа: Внутри\n\n'
+            
+
         if order_request.payment_method == 'card':
             payment_method = 'По карте'
         if order_request.payment_method == 'cash':
@@ -160,7 +168,7 @@ class AddOrderInteractor:
         msg += f'Время начала готовки: {"Как можно скорее" if cook_start == "asap" else cook_start}.\n'
         msg += f'Способ оплаты: {payment_method}.\n'
         msg += f'Телефон клиента: {user_dto.phone}.\n'
-        msg += f'Адрес доставки: {order_data['delivery_address']}\n\n'
+        msg += order_type
         msg += f'Комментарий к заказу: {comment}\n\n' if comment else ''
         
         for name, items_variations in order_data['order'].items():

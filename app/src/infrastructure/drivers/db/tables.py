@@ -345,7 +345,9 @@ class Order(Base):
         Integer, ForeignKey("restaurant.id", ondelete="SET NULL"), nullable=True
     )
     address_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user_address.id", ondelete="RESTRICT")
+        Integer,
+        ForeignKey("user_address.id", ondelete="RESTRICT"),
+        nullable=True
     )
     order_action: Mapped[OrderAction] = mapped_column(
         SQLEnum(
