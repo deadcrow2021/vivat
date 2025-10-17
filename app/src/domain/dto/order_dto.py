@@ -136,7 +136,7 @@ class UserInfo(BaseModel):
 class OrderRequest(BaseModel):
     selected_restaurant: SelectedRestaurant
     order_list: List[OrderedPosition]
-    user_info: UserInfo
+    user_info: Optional[UserInfo] = None
     order_quantity: int
     cook_start: str # "13:37"(сейчас) "09:00" "18:30" сиводня
     comment: Optional[str] = Field(max_length=500)

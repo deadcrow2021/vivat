@@ -6,7 +6,7 @@ from typing import Optional
 from src.infrastructure.exceptions import UserNotFoundError
 from src.application.exceptions import IdNotValidError
 from src.domain.dto.auth_dto import CurrentUserDTO
-from src.domain.dto.order_dto import GetOrderResponse, IngredientModel, OrderItemModel, OrderModel, OrderRequest, CreateOrderResponse, OrderStatus
+from src.domain.dto.order_dto import OrderAction, GetOrderResponse, IngredientModel, OrderItemModel, OrderModel, OrderRequest, CreateOrderResponse, OrderStatus
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import order_repository, user_address_repository, users_repository
 from src.application.interfaces.notification.notifier import INotifier
@@ -135,6 +135,11 @@ class AddOrderInteractor:
 
         if user.is_banned:
             raise ValueError('Неизвестная ошибка при создании заказа. Попробуйте позже.')
+
+        action = order_request.selected_restaurant.action
+        if action == OrderAction.DELIVERY:
+            if not order_request.user_info:
+                raise ValueError('Для доставки необходимо указать адрес пользователя.')
 
         order_data = await self._order_repository.create_order(order_request, user_dto.id)
         await self._transaction_manager.commit()
