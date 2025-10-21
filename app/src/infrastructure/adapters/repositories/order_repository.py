@@ -1,5 +1,7 @@
 from decimal import Decimal
 from math import ceil
+import random
+import string
 from typing import Dict, List, Optional, Set
 
 from sqlalchemy import Tuple, and_, exists, select, or_
@@ -32,11 +34,11 @@ class OrderRepository(IOrderRepository):
         # Создаем алиасы для ингредиентов, чтобы избежать конфликта имен
         AddedIngredient = aliased(Ingredient)
         RemovedIngredient = aliased(Ingredient)
-        
+
         stmt = (
             select(Order)
             .join(Order.restaurant)
-            .join(Order.address)
+            .outerjoin(Order.address)
             .join(Order.items)
             .join(OrderItem.food_variant)
             .join(FoodVariant.food)
@@ -63,12 +65,11 @@ class OrderRepository(IOrderRepository):
             .filter(Order.user_id == user_id)
             .order_by(Order.created_at.desc())
         )
-        
+
         result = await self._session.execute(stmt)
         orders = result.unique().scalars().all()
-        
+
         return orders
-        
 
 
     async def create_order(
@@ -112,7 +113,7 @@ class OrderRepository(IOrderRepository):
                 )
             )
             address_result = await self._session.execute(address_stmt)
-            delivery_address = address_result.scalars().first()
+            delivery_address: UserAddress = address_result.scalars().first()
 
             if not delivery_address:
                 raise ValueError(f"Адрес пользователя с id {address_id} не найден")
@@ -235,10 +236,11 @@ class OrderRepository(IOrderRepository):
             order_action=order_request.selected_restaurant.action,
             status=OrderStatus.CREATED,
             total_price=0,
+            unique_code=self._generate_unique_code(),
         )
         self._session.add(new_order)
         await self._session.flush()
-        
+
         total_price = 0
         order_items: List[OrderItem] = []
         total_quantity = 0
@@ -383,3 +385,9 @@ class OrderRepository(IOrderRepository):
         order.status = new_status
         await self._session.flush()
         return order
+
+
+    def _generate_unique_code(self) -> str:
+        letter = random.choice(string.ascii_uppercase)
+        digits = random.randint(100, 999)
+        return f"{letter}{digits}"

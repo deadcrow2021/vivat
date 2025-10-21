@@ -30,7 +30,10 @@ services:
       ALLOW_CREDENTIALS: ${ALLOW_CREDENTIALS}
     volumes:
       - ./app/:/server
-    # command: ["python3", "./main.py"]
+    command: >
+      sh -c "cd /server &&
+      alembic upgrade head &&
+      gunicorn main:create_application --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
 
 volumes:
   db-volume:

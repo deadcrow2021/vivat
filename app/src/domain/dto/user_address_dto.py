@@ -35,7 +35,7 @@ class BaseUserAddressRequest(BaseModel):
         return v
 
     @field_validator("apartment")
-    def entrance_validator(cls, v):
+    def apartment_validator(cls, v):
         if v is None:
             return v
         txt_len = len(v.strip())

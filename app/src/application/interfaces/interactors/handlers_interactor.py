@@ -45,7 +45,8 @@ class BotHandlerInteractor:
         # Преобразуем код статуса в OrderStatus
         status_mapping = {
             "in_progress": OrderStatus.IN_PROGRESS,
-            "in_delivery": OrderStatus.IN_DELIVERY, 
+            "in_delivery": OrderStatus.IN_DELIVERY,
+            "cooked": OrderStatus.COOKED,
             "done": OrderStatus.DONE,
             "cancelled": OrderStatus.CANCELLED
         }
@@ -70,7 +71,8 @@ class BotHandlerInteractor:
                 message_id=query.message.message_id,
                 order_id=order_id,
                 message_text=message_text,
-                current_status=updated_order.status.value
+                current_status=updated_order.status.value,
+                action=updated_order.order_action
             )
 
         except Exception as e:

@@ -370,6 +370,7 @@ class Order(Base):
         default=OrderStatus.CREATED
     )
     total_price: Mapped[int] = mapped_column(Integer, nullable=False)
+    unique_code: Mapped[str] = mapped_column(String(10), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
 
@@ -482,10 +483,10 @@ class UserAddress(Base):
 
     def get_full_address(self) -> str:
         address_parts = [
-            ("Адрес: " + self.address) if self.address else '',
-            "Вход: " + self.entrance if self.entrance else '',
-            "Этаж: " + str(self.floor) if self.floor else '',
-            "Квартира: " + self.apartment if self.apartment else '',
+            self.address if self.address else '',
+            ("вход " + self.entrance) if self.entrance else '',
+            ("этаж " + str(self.floor)) if self.floor else '',
+            ("кв. " + self.apartment) if self.apartment else '',
         ]
         return ', '.join(x for x in address_parts if x)
 

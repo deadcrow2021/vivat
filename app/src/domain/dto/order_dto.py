@@ -19,6 +19,7 @@ class OrderStatus(Enum):
     CREATED = "created"
     IN_PROGRESS = "in_progress"
     IN_DELIVERY = "in_delivery"
+    COOKED = "cooked"
     DONE = "done"
     CANCELLED = "cancelled"
 
@@ -38,6 +39,7 @@ class OrderItemModel(BaseModel):
 
 
 class OrderModel(BaseModel):
+    id: int
     order_items: List[OrderItemModel]
     status: OrderStatus
     delivery_address: Optional[str] = None

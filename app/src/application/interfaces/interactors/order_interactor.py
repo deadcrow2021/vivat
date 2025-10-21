@@ -1,8 +1,6 @@
 from math import ceil
-import random
-import string
-from typing import Optional
 
+from src.infrastructure.drivers.db.tables import Order
 from src.infrastructure.exceptions import UserNotFoundError
 from src.application.exceptions import IdNotValidError
 from src.domain.dto.auth_dto import CurrentUserDTO
@@ -31,7 +29,7 @@ class GetUserOrdersInteractor:
             order_items = []
             status = order.status
             delivery_address = order.address.get_full_address() if order.address else None
-            order_date = order.created_at.strftime("%d.%m.%Y.")
+            order_date = order.created_at.strftime("%d.%m.%Y")
             total_price = order.total_price
             restaurant_phone = order.restaurant.phone.e164
 
@@ -99,6 +97,7 @@ class GetUserOrdersInteractor:
 
             orders_list.append(
                 OrderModel(
+                    id=order.id,
                     order_items=order_items,
                     status=status,
                     delivery_address=delivery_address,
@@ -144,20 +143,20 @@ class AddOrderInteractor:
         order_data = await self._order_repository.create_order(order_request, user_dto.id)
         await self._transaction_manager.commit()
 
-        order = order_data['order_obj']
-        unique_code = self._generate_unique_code()
+        order: Order = order_data['order_obj']
+        unique_code = order.unique_code
         cook_start = order_request.cook_start
         comment = order_request.comment
         count = 1
         msg = ''
 
         if action == OrderAction.DELIVERY:
-            order_type = f'Адрес доставки: {order_data['delivery_address']}\n\n'
+            order_type = f'Тип заказа: Доставка\n'
+            order_type += f'{order_data['delivery_address']}\n'
         elif action == OrderAction.TAKEAWAY:
-            order_type = f'Тип заказа: Самовывоз\n\n'
+            order_type = f'Тип заказа: Самовывоз\n'
         elif action == OrderAction.INSIDE:
-            order_type = f'Тип заказа: Внутри\n\n'
-            
+            order_type = f'Тип заказа: Внутри\n'
 
         if order_request.payment_method == 'card':
             payment_method = 'По карте'
@@ -169,8 +168,9 @@ class AddOrderInteractor:
         msg += f'Способ оплаты: {payment_method}.\n'
         msg += f'Телефон клиента: {user_dto.phone}.\n'
         msg += order_type
-        msg += f'Комментарий к заказу: {comment}\n\n' if comment else ''
-        
+        msg += f'\nКомментарий к заказу: {comment}' if comment else ''
+        msg += '\n\n'
+
         for name, items_variations in order_data['order'].items():
             for item in items_variations:
                 position_name = ' '.join(
@@ -194,14 +194,12 @@ class AddOrderInteractor:
                         f'\t- {remove_ingredient}'
                         for remove_ingredient in ingredients['remove']
                     )
-                msg += '\n\n'
+                msg += '\n\n' if (item['ingredients'] or ingredients['remove']) else ''
                 count += 1
 
         msg += 'Общая сумма: ' + str(order_data['total_price']) + ' р.'
 
-        print(msg)
-        logger.info(msg)
-        await self._notifier.send_new_order(order.restaurant_id, order.id, msg, order.status.value)
+        await self._notifier.send_new_order(order.restaurant_id, order.id, msg, order.status.value, order.order_action)
 
         return CreateOrderResponse(
             id=order.id,
@@ -213,9 +211,3 @@ class AddOrderInteractor:
             status=order.status,
             unique_code=unique_code
         )
-
-
-    def _generate_unique_code(self) -> str:
-        letter = random.choice(string.ascii_uppercase)
-        digits = random.randint(100, 999)
-        return f"{letter}{digits}"

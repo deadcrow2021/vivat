@@ -2,6 +2,7 @@ from typing import List
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.error import BadRequest
 
+from src.domain.dto.order_dto import OrderAction
 from src.application.interfaces.notification.notifier import INotifier
 from src.application.interfaces.repositories.restaurant_repository import IRestaurantRepository
 
@@ -21,14 +22,15 @@ class TelegramOrderNotifier(INotifier):
         restaurant_id: int,
         order_id: int,
         message_text: str,
-        current_status: str    
+        current_status: str,
+        action: OrderAction
     ) -> None:
         restaurant = await self._restaurants.get_restaurant_by_id(restaurant_id)
         chats = restaurant.telegram_chats
         if not chats:
             return
 
-        keyboard = self.build_keyboard(current_status, order_id)
+        keyboard = self.build_keyboard(current_status, order_id, action)
         full_text = f"{message_text}\n\nСтатус: {self._get_status_display(current_status)}"
 
         for chat in chats:
@@ -49,11 +51,12 @@ class TelegramOrderNotifier(INotifier):
         message_id: int,
         order_id: int,
         message_text: str,
-        current_status: str
+        current_status: str,
+        action: OrderAction
     ) -> None:
         """Обновляет сообщение с заказом после изменения статуса"""
         try:
-            keyboard = self.build_keyboard(current_status, order_id)
+            keyboard = self.build_keyboard(current_status, order_id, action)
             full_text = f"{message_text}\n\nСтатус: {self._get_status_display(current_status)}"
             
             await self._bot.edit_message_text(
@@ -68,7 +71,12 @@ class TelegramOrderNotifier(INotifier):
             print(f"Error updating message: {e}")
 
 
-    def build_keyboard(self, status: str, order_id: int) -> List[List[InlineKeyboardButton]]:
+    def build_keyboard(
+        self,
+        status: str,
+        order_id: int,
+        action: OrderAction
+    ) -> List[List[InlineKeyboardButton]]:
         def mk(text: str, code: str):
             if code == status:
                 return InlineKeyboardButton(f"✅ {text}", callback_data="disabled")
@@ -77,10 +85,10 @@ class TelegramOrderNotifier(INotifier):
         return [
             [
                 mk("В работе", "in_progress"),
-                mk("В доставке", "in_delivery"),
-                mk("Готов", "done"),
+                mk("В доставке", "in_delivery") if action == OrderAction.DELIVERY else mk("Готово к выдаче", "cooked"),
             ],
             [
+                mk("Готово", "done"),
                 mk("Отмена", "cancelled"),
             ]
         ]
@@ -91,7 +99,8 @@ class TelegramOrderNotifier(INotifier):
         status_map = {
             "created": "🆕 Создан",
             "in_progress": "👨‍🍳 В процессе",
-            "in_delivery": "🚗 В доставке", 
+            "in_delivery": "🚗 В доставке",
+            "cooked": "🍽️ Готово к выдаче",
             "done": "✅ Выполнено",
             "cancelled": "❌ Отмена",
         }
