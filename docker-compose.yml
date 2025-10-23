@@ -44,4 +44,5 @@ volumes:
 
 networks:
   vivat-network:
-    driver: bridge
+    external: true
+    name: vivat-network
