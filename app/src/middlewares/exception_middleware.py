@@ -12,10 +12,18 @@ async def exception_middleware(request: Request, call_next) -> Response:
     config: Config = create_config()
     environment = config.app.environment
 
+    logger.debug(f"Incoming request: {request.method} {request.url}")
+    logger.debug(f"Headers: {dict(request.headers)}")
+    logger.debug(f"Client: {request.client}")
+
     try:
         logger.debug(f"start request")
-        response = await call_next(request)
+        response: Response = await call_next(request)
         logger.debug(f"end request")
+        
+        logger.debug(f"Response: {response.status_code}")
+        logger.debug(f"Response headers: {dict(response.headers)}")
+
         return response
 
     except SQLAlchemyError as exc:
