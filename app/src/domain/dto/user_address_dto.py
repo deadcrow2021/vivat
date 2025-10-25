@@ -12,23 +12,25 @@ class BaseUserAddressRequest(BaseModel):
 
     @field_validator("address")
     def address_validator(cls, v):
-        txt_len = len(v.strip())
+        text = v.strip()
+        txt_len = len(text)
         if txt_len < 1 or txt_len > 1000:
             raise RequestValidationError("Адрес должен быть между 1 и 1000 символами")
-        return v
+        return text
 
     @field_validator("entrance")
     def entrance_validator(cls, v):
-        if v is None:
-            return v
-        txt_len = len(v.strip())
+        if not v:
+            return None
+        text = v.strip()
+        txt_len = len(text)
         if txt_len < 1 or txt_len > 20:
             raise RequestValidationError("Подъезд должен быть между 1 и 20 символами")
-        return v
+        return text
 
     @field_validator("floor")
     def floor_must_be_positive(cls, v):
-        if v is None:
+        if not v:
             return v
         if v < 0 or v > 500:
             raise RequestValidationError("Этаж должен быть положительным числом")
@@ -36,12 +38,13 @@ class BaseUserAddressRequest(BaseModel):
 
     @field_validator("apartment")
     def apartment_validator(cls, v):
-        if v is None:
+        if not v:
             return v
-        txt_len = len(v.strip())
+        text = v.strip()
+        txt_len = len(text)
         if txt_len < 1 or txt_len > 20:
             raise RequestValidationError("Квартира должна быть между 1 и 20 символами")
-        return v
+        return text
 
 
 class BaseUserAddressResponse(BaseModel):
