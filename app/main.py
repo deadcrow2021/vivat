@@ -98,6 +98,7 @@ def create_application() -> FastAPI:
     config: Config = create_config()
     app: FastAPI = FastAPI(
         lifespan=lifespan,
+        root_path="/api",
         debug=True if config.app.environment == "development" else False
     )
 

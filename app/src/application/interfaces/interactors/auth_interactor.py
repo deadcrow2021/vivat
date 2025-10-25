@@ -87,7 +87,8 @@ class LoginUserInteractor:
             httponly=True, # HttpOnly Cookie
             max_age=self._config.token.access_token_expire_minutes * 60,
             secure=_is_secure(self._config),
-            samesite="Lax"
+            samesite="Lax" if self._config.app.environment == "development" else "none",
+            domain=self._config.app.domain,
         )
         # Refresh Token
         response.set_cookie(
@@ -96,7 +97,8 @@ class LoginUserInteractor:
             httponly=True, # HttpOnly Cookie
             max_age=self._config.token.refresh_token_expire_days * 24 * 3600,
             secure=_is_secure(self._config),
-            samesite="Lax"
+            samesite="Lax" if self._config.app.environment == "development" else "none",
+            domain=self._config.app.domain,
         )
 
         if user_adress:
@@ -188,7 +190,8 @@ class UpdateAccessTokenInteractor:
             httponly=True, # HttpOnly Cookie
             max_age=self._config.token.access_token_expire_minutes * 60,
             secure=_is_secure(self._config),
-            samesite="Lax"
+            samesite="Lax" if self._config.app.environment == "development" else "none",
+            domain=self._config.app.domain,
         )
         # Генерация нового access токена
         return UpdateUserResponse(
@@ -234,13 +237,15 @@ class LogoutInteractor:
             key=self._config.token.access_token_cookie_key,
             httponly=True,
             secure=_is_secure(self._config),
-            samesite="Lax"
+            samesite="Lax" if self._config.app.environment == "development" else "none",
+            domain=self._config.app.domain,
         )
         response.delete_cookie(
             key=self._config.token.refresh_token_cookie_key,
             httponly=True,
             secure=_is_secure(self._config),
-            samesite="Lax"
+            samesite="Lax" if self._config.app.environment == "development" else "none",
+            domain=self._config.app.domain,
         )
         return LogOutResponse(
             message="Logout success",
@@ -291,6 +296,4 @@ class GetCurrentUserInteractor:
 
 def _is_secure(config: Config):
     '''Только для HTTPS в production'''
-    if config.app.environment == 'production':
-        return True
-    return False
+    return  config.app.environment == 'production'

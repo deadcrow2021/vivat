@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
 from pydantic import AnyHttpUrl, BaseModel, Field, field_validator, SecretStr
 from pydantic_settings import BaseSettings as _BaseSettings
@@ -22,6 +22,7 @@ class AppConfig(BaseSettings):
     port: int = Field(default=int(os.environ["PORT"]))
     environment: str = Field(default=os.environ["ENVIRONMENT"])
     log_level: str = Field(default=os.environ["LOG_LEVEL"])
+    domain: Optional[str] = Field(os.environ.get("DOMAIN"))
 
     @field_validator("log_level")
     @classmethod
