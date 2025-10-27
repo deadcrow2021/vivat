@@ -98,7 +98,7 @@ class GetMenuCategoryPositionsIngredientsInteractor:
                     image_url=food.image_url or "",
                     description=food.description or "",
                     measure_name=food.measure_name or "",
-                    size=size_info,
+                    size=sorted(size_info, key=lambda x: x['measure_value']),
                     ingredients=ingredients if ingredients else None
                 )
             ) 
