@@ -9,11 +9,11 @@ services:
     volumes:
       - db-volume:/var/lib/postgresql/data
     env_file:
-      - .env
+      - /opt/vivat/.env
 
   backend:
     build:
-      context: .
+      context: /opt/vivat/
     container_name: backend
     restart: always
     working_dir: /server
@@ -22,13 +22,37 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - /opt/vivat/.env
     volumes:
-      - ./app/:/server
+      - /opt/vivat/app/:/server
     command: >
       sh -c "cd /server &&
       alembic upgrade head &&
       gunicorn main:create_application --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
+      
+  vivat-frontend:
+    build:
+      context: /opt/vivat-frontend
+    image: vivat-frontend
+    ports:
+        - '3000:3000'
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - vivat-frontend
+      - backend
+    volumes:
+      - /opt/vivat/nginx/conf.d:/etc/nginx/conf.d:ro
+      - /opt/vivat/nginx/logs:/var/log/nginx
+    networks:
+      - vivat-net
 
 volumes:
   db-volume:
