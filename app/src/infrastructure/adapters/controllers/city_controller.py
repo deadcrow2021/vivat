@@ -12,7 +12,7 @@ router = APIRouter(prefix="/city", tags=["City"])
 
 
 @router.get(
-    "/",
+    "",
     status_code=status.HTTP_200_OK,
     response_model=GetAllCitiesResponse,
     responses={
@@ -44,7 +44,7 @@ async def get_city_by_id(
 
 # TODO: нужна проверка на роль админа
 # @router.post(
-#     "/",
+#     "",
 #     status_code=status.HTTP_200_OK,
 #     response_model=AddCityResponse,
 #     responses={
@@ -79,7 +79,7 @@ async def get_city_by_id(
 
 # TODO: нужна проверка на роль админа
 # @router.delete(
-#     "/",
+#     "",
 #     status_code=status.HTTP_200_OK,
 #     response_model=DeleteCityResponse,
 #     responses={
@@ -95,7 +95,7 @@ async def get_city_by_id(
 
 
 # @router.get(
-#     "/test/",
+#     "/test",
 #     status_code=status.HTTP_200_OK,
 #     # response_model=DeleteCityResponse,
 #     responses={

@@ -28,7 +28,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 #     return await get_user(user_id)
 
 @router.delete(
-    "/",
+    "",
     status_code=status.HTTP_200_OK,
     response_model=DeleteUserResponse,
     responses={

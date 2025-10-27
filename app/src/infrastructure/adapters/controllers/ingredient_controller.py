@@ -12,7 +12,7 @@ router = APIRouter(prefix="/ingredient", tags=["Ingredient"])
 
 
 # @router.get(
-#     "/",
+#     "",
 #     status_code=status.HTTP_200_OK,
 #     response_model=List[IngredientResponse],
 #     responses={

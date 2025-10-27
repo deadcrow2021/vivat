@@ -26,7 +26,7 @@ async def get_feature(
     return await get_feature_(feature_id)
 
 @router.get(
-    "/",
+    "",
     status_code=status.HTTP_200_OK,
     response_model=GetAllFeaturesResponse,
     responses={
@@ -41,7 +41,7 @@ async def get_all_features(
 
 # TODO: нужна проверка на роль админа
 # @router.post(
-#     "/",
+#     "",
 #     status_code=status.HTTP_201_CREATED,
 #     response_model=CreateFeatureResponse,
 #     responses={

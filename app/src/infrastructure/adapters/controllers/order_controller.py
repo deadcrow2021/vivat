@@ -11,7 +11,7 @@ from src.domain.dto.order_dto import GetOrderResponse, OrderRequest, CreateOrder
 router = APIRouter(prefix="/order", tags=["Order"])
 
 @router.get(
-    "/",
+    "",
     status_code=status.HTTP_200_OK,
     response_model=GetOrderResponse,
     responses={
@@ -29,7 +29,7 @@ async def get_user_orders(
 
 
 @router.post(
-    "/",
+    "",
     status_code=status.HTTP_201_CREATED,
     response_model=CreateOrderResponse,
     responses={

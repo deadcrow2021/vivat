@@ -11,7 +11,7 @@ router = APIRouter(prefix="/order_item", tags=["Order Item"])
 
 # TODO: проверить на роль админа
 # @router.post(
-#     "/",
+#     "",
 #     status_code=status.HTTP_201_CREATED,
 #     response_model=AddOrderItemResponse,
 #     responses={

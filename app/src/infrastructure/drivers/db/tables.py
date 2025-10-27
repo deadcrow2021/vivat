@@ -268,6 +268,7 @@ class FoodVariant(Base):
         Numeric(10, 4), default=1.0
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Связи
     food: Mapped["Food"] = relationship(back_populates="variants")
     order_item: Mapped["OrderItem"] = relationship("OrderItem", back_populates="food_variant")
     characteristics: Mapped[list["FoodCharacteristic"]] = relationship(

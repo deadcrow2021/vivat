@@ -15,7 +15,7 @@ from src.application.interfaces.interactors.user_address_interactor import AddUs
 router = APIRouter(prefix="/user_address", tags=["User Address"])
 
 @router.get(
-    "/",
+    "",
     status_code=status.HTTP_200_OK,
     response_model=List[GetUserAddress],
     responses={
@@ -33,7 +33,7 @@ async def get_user_address(
 
 
 @router.post(
-    "/",
+    "",
     status_code=status.HTTP_200_OK,
     response_model=AddUserAddressResponse,
     responses={

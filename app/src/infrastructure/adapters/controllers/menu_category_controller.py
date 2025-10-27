@@ -16,7 +16,7 @@ router = APIRouter(prefix="/category", tags=["Menu Category"])
 
 
 @router.get(
-    "/",
+    "",
     status_code=status.HTTP_200_OK,
     response_model=GetMenuCategoriesResponse,
     responses={
@@ -50,7 +50,7 @@ async def get_restaurant_menu_category(
 
 # TODO: добавить проверку на роль админа
 # @router.post(
-#     "/",
+#     "",
 #     status_code=status.HTTP_201_CREATED,
 #     response_model=AddMenuCategoryResponse,
 #     responses={

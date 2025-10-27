@@ -16,7 +16,7 @@ router = APIRouter(prefix="/food_characteristic", tags=["Food Characteristic"])
 
 # TODO: нужна проверка на роль админа
 # @router.post(
-#     "/",
+#     "",
 #     status_code=status.HTTP_201_CREATED,
 #     response_model=AddCharacteristicsToVariantResponse,
 #     responses={
