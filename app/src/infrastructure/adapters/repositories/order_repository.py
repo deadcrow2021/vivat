@@ -164,9 +164,6 @@ class OrderRepository(IOrderRepository):
 
         # Проверка совпадения имен вариантов из запроса и из БД
         for position in order_request.order_list:
-            if position.price != food_variants[position.size].price:
-                raise ValueError(f"Цена в запросе {position.price} не совпадает с ценой в БД {food_variants[position.size].price}")
-
             if position.size not in food_variants:
                 raise ValueError(f"Вариант блюда с id {position.size} не найден")
 
@@ -252,11 +249,14 @@ class OrderRepository(IOrderRepository):
             food_variant_obj = food_variants[position.size]
             modifier = food_variant_obj.ingredient_price_modifier
 
-            if position.addings: ##### Цена ебланит ######
+            if position.addings:
                 for adding_id, addings_amount in position.addings.items():
                     ingredients_price += ceil(ingredients_map[adding_id].price * modifier) * addings_amount
 
             position_clear_price = food_variant_obj.price + ingredients_price
+            if position.price != food_variant_obj.price:
+                raise ValueError(f"Цена в запросе {position.price} не совпадает с ценой в БД {food_variant_obj.price}")
+
             position_total_price = position_clear_price * position.quantity
 
             total_price += position_total_price
