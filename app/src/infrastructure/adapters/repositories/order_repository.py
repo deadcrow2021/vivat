@@ -130,11 +130,11 @@ class OrderRepository(IOrderRepository):
             adding_ids = set(position.addings.keys() if position.addings else []) # TODO: проверить
             remove_ids = set(position.removed_ingredients or [])
 
-            ids_intersections = adding_ids.intersection(remove_ids)
-            if ids_intersections:
-                raise ValueError(
-                    f"Ингредиент с id {', '.join(ids_intersections)} добавлены и удалены одновременно"
-                )
+            # ids_intersections = adding_ids.intersection(remove_ids)
+            # if ids_intersections:
+            #     raise ValueError(
+            #         f"Ингредиент с id {', '.join(ids_intersections)} добавлены и удалены одновременно"
+            #     )
 
             all_adding_ids.update(adding_ids)
             all_remove_ids.update(remove_ids)
