@@ -37,14 +37,22 @@ data = {
             "need_addings": True,
             "positions": [
                 {
-                    "ingredients": ["тунец (консервированный)", "сыр пармезан", "соус томатный", "оливки", "помидоры"],
+                    "ingredients": ["тунец (консерв.)", "сыр пармезан", "соус томатный", "оливки", "помидоры"],
                     "name": "С тунцом",
-                    'prices': (560, 950, 1210)
+                    "prices": (560, 950, 1210),
                 },
                 {
-                    "ingredients": ["сыр моцарелла", "соус томатный", "помидоры", "зелень"],
+                    "ingredients": [
+                        "сыр моцарелла",
+                        "соус томатный",
+                        "свинина",
+                        "буженина",
+                        "пепперони",
+                        "шампиньоны",
+                        "зелень",
+                    ],
                     "name": "Маргаритта",
-                    'prices': (490, 650, 850)
+                    "prices": (490, 650, 850),
                 },
                 {
                     "ingredients": [
@@ -57,17 +65,20 @@ data = {
                         "зелень",
                     ],
                     "name": "Vivat",
-                    'prices': (690, 950, 1080)
+                    "prices": (690, 950, 1080),
                 },
+                {"ingredients": ["соус томатный", "4 вида сыра"], "name": "4 сыра", "prices": (560, 950, 1080)},
                 {
-                    "ingredients": ["сыр моцарелла", "сыр пармезан", "сыр гуда", "сыр эдам"],
-                    "name": "4 сыра",
-                    'prices': (560, 950, 1080)
-                },
-                {
-                    "ingredients": ["шампиньоны", "зелень", "болгарский перец"],
+                    "ingredients": [
+                        "соус томатный",
+                        "сыр моцарелла",
+                        "помидоры",
+                        "шампиньоны",
+                        "зелень",
+                        "болгарский перец",
+                    ],
                     "name": "Грибная",
-                    'prices': (490, 750, 950)
+                    "prices": (490, 750, 950),
                 },
                 {
                     "ingredients": [
@@ -80,42 +91,42 @@ data = {
                         "зелень",
                     ],
                     "name": "Антонио",
-                    'prices': (560, 750, 950)
+                    "prices": (560, 750, 950),
                 },
                 {
                     "ingredients": ["сыр моцарелла", "соус томатный", "салями", "ветчина", "шампиньоны", "помидоры"],
                     "name": "Классика",
-                    'prices': (560, 750, 950)
+                    "prices": (560, 750, 950),
                 },
                 {
                     "ingredients": ["сыр моцарелла", "соус томатный", "салями", "буженина", "помидоры", "кукуруза"],
                     "name": "Пикассо",
-                    'prices': (560, 750, 950)
+                    "prices": (560, 750, 950),
                 },
                 {
                     "ingredients": ["сыр моцарелла", "соус томатный", "помидоры", "ветчина", "шампиньоны"],
                     "name": "Прошутто",
-                    'prices': (560, 750, 950)
+                    "prices": (560, 750, 950),
                 },
                 {
-                    "ingredients": ["сыр моцарелла", "помидоры", "соус томатный", "курица", "шампиньоны"],
+                    "ingredients": ["сыр моцарелла", "помидоры", "соус томатный", "курица", "шампиньоны", "зелень"],
                     "name": "Курица с грибами",
-                    'prices': (560, 820, 950)
+                    "prices": (560, 820, 950),
                 },
                 {
                     "ingredients": ["сыр моцарелла", "соус томатный", "курица", "ананас"],
                     "name": "Гавайская с курицей",
-                    'prices': (560, 820, 950) 
+                    "prices": (560, 820, 950),
                 },
                 {
                     "ingredients": ["сыр моцарелла", "соус томатный", "ветчина", "ананас"],
                     "name": "Гавайская с ветчиной",
-                    'prices': (560, 820, 950)
+                    "prices": (560, 820, 950),
                 },
                 {
-                    "ingredients": ["маслины", "морской коктейль (осьминог", "мидии", "креветки", "кальмар)"],
+                    "ingredients": ["сыр моцарелла", "соус томатный", "маслины", "морской коктейль", "зелень"],
                     "name": "Морская",
-                    'prices': (650, 1010, 1210)
+                    "prices": (650, 1010, 1210),
                 },
                 {
                     "ingredients": [
@@ -129,22 +140,22 @@ data = {
                         "болгарский перец",
                     ],
                     "name": "Микс",
-                    'prices': (690, 950, 1210)
+                    "prices": (690, 950, 1210),
                 },
                 {
                     "ingredients": ["сыр пармезан", "соус томатный", "свинина", "помидоры"],
                     "name": "Пармезан",
-                    'prices': (690, 820, 1080)
+                    "prices": (690, 820, 1080),
                 },
                 {
-                    "ingredients": ["сыр моцарелла", "соус томатный", "оливки", "красная рыба (семга)", "креветки"],
+                    "ingredients": ["сыр моцарелла", "соус томатный", "оливки", "красная рыба", "креветки"],
                     "name": "С красной рыбой",
-                    'prices': (890, 1210, 1410)
+                    "prices": (890, 1210, 1410),
                 },
                 {
-                    "ingredients": ["сыр моцарелла", "соус томатный", "пепперони", "болгарский перец"],
+                    "ingredients": ["сыр моцарелла", "соус томатный", "салями", "болгарский перец"],
                     "name": "Пепперони",
-                    'prices': (560, 750, 950)
+                    "prices": (560, 750, 950),
                 },
                 {
                     "ingredients": [
@@ -158,15 +169,16 @@ data = {
                         "маслины",
                     ],
                     "name": "Вегетарианская",
-                    'prices': (490, 690, 950)
+                    "prices": (490, 690, 950),
                 },
                 {
-                    "ingredients": ["сыр моцарелла", "соус томатный", "салями", "маслины"],
-                    "name": "Салями" ,
-                    'prices': (560, 750, 950)   
+                    "ingredients": ["сыр моцарелла", "соус томатный", "салями", "маслины", "корнишоны"],
+                    "name": "Салями",
+                    "prices": (560, 750, 950),
                 },
                 {
                     "ingredients": [
+                        "сыр моцарелла",
                         "говядина",
                         "салями",
                         "буженина",
@@ -176,7 +188,7 @@ data = {
                         "зелень",
                     ],
                     "name": "Манзо",
-                    'prices': (690, 950, 1080)
+                    "prices": (690, 950, 1080),
                 },
                 {
                     "ingredients": [
@@ -189,7 +201,7 @@ data = {
                         "зелень",
                     ],
                     "name": "Филичи",
-                    'prices': (690, 810, 1080)
+                    "prices": (690, 810, 1080),
                 },
                 {
                     "ingredients": [
@@ -201,7 +213,7 @@ data = {
                         "белый соус",
                     ],
                     "name": "Груша с Дорблю",
-                    'prices': (750, 1200, 1400)
+                    "prices": (750, 1200, 1400),
                 },
             ],
         },
@@ -211,18 +223,16 @@ data = {
 }
 
 ingredients_data = [
-    'ананас', 'белый соус', 'болгарский перец', 'брокколи', 'буженина',
-    'ветчина', 'говядина', 'груша', 'сыр гуда', 'сыр дорблю', 'зелень',
-    'красная рыба (семга)', 'креветки', 'кукуруза', 'курица', 'маслины',
-    'морской коктейль (осьминог, мидии, креветки, кальмар)', 'оливки', 'сыр пармезан',
+    '4 вида сыра', 'ананас', 'белый соус', 'болгарский перец', 'брокколи',
+    'буженина', 'ветчина', 'говядина', 'груша', 'зелень', 'корнишоны', 'красная рыба',
+    'креветки', 'кукуруза', 'курица', 'маслины', 'морской коктейль', 'оливки',
     'пепперони', 'помидоры', 'салями', 'свинина', 'соус терияки', 'соус томатный',
-    'сыр моцарелла', 'трюфельное масло', 'тунец', 'шампиньоны', 'сыр эдам'
+    'сыр дорблю', 'сыр моцарелла', 'сыр пармезан', 'трюфельное масло', 'тунец (консерв.)', 'шампиньоны'
 ]
 
 ingredients_price_data = {
-    'ананас': 80,
-    'пепперони': 100,
     'сыр моцарелла': 100,
+    'сыр пармезан': 100,
     'помидоры': 70,
     'шампиньоны': 70,
     'кукуруза': 70,
@@ -231,14 +241,19 @@ ingredients_price_data = {
     'ветчина': 100,
     'буженина': 100,
     'курица': 100,
-    'красная рыба (семга)': 200,
     'креветки': 140,
+    'морской коктейль': 200,
     'свинина': 140,
-    'говядина': 140,
-    'зелень': 40,
+    'ананас': 80,
     'маслины': 80,
     'оливки': 80,
-    'морской коктейль (осьминог, мидии, креветки, кальмар)': 200,
+    'зелень': 40,
+    'пепперони': 100,
+    'красная рыба': 200,
+    'говядина': 140,
+    'корнишоны': 70,
+    'брокколи': 70,
+    'груша': 100,
 }
 
 restaurants_data = [
@@ -249,9 +264,9 @@ restaurants_data = [
         "coords": (44.673718, 34.404694),
     },
     {
-        "name": "Виват на Набережной",
+        "name": "Мангал Виват на Набережной",
         "address": "г. Алушта, ул. Ленина, 13Д",
-        "phone": "+79787048806",
+        "phone": "+79786247915",
         "coords": (44.669978, 34.413874),
     },
 ]
@@ -269,10 +284,7 @@ async def generate_data(session: AsyncSession):
     restaurants: list[Restaurant] = []
 
     categories = [
-        MenuCategory(
-            name=category,
-            display_order=data["menu_categories"][category]["display_order"]
-        )
+        MenuCategory(name=category, display_order=data["menu_categories"][category]["display_order"])
         for category in data["menu_categories"]
     ]
     session.add_all(categories)
@@ -306,7 +318,6 @@ async def generate_data(session: AsyncSession):
             working_hours.append(wh)
     session.add_all(working_hours)
 
-
     # 6. Ингредиенты
     ingredients: List[Ingredient] = []
 
@@ -316,43 +327,36 @@ async def generate_data(session: AsyncSession):
                 name=ingredient.capitalize(),
                 price=ingredients_price_data[ingredient] if ingredient in ingredients_price_data else 99,
                 is_available=True,
-                image_url='/',
+                image_url="/",
             )
         )
     session.add_all(ingredients)
 
     # 7. Характеристики еды
-    characteristics = [
-        FoodCharacteristic(
-            measure_value=f"{value}"
-        ) for value in (32, 40, 50)
-    ]
+    characteristics = [FoodCharacteristic(measure_value=f"{value}") for value in (32, 40, 50)]
     session.add_all(characteristics)
-    
+
     # 8. Генерация блюд
     foods: List[Food] = []
     modifiers = (1.0, 2.0, 3.0)
 
-    pizza_positions = data['menu_categories']['Пицца']['positions']
+    pizza_positions = data["menu_categories"]["Пицца"]["positions"]
     for position in pizza_positions:
         variants = []
 
         for i in range(3):
-            variant = FoodVariant(
-                price=position['prices'][i],
-                ingredient_price_modifier=modifiers[i],
-            )
+            variant = FoodVariant(price=position["prices"][i], ingredient_price_modifier=modifiers[i])
             # Правильное присвоение характеристик
             variant.characteristics = [characteristics[i]]
             variants.append(variant)
 
         food = Food(
-            name=position['name'],
+            name=position["name"],
             category_id=categories[0].id,
-            image_url='/',
+            image_url="/",
             description=None,
             measure_name="см",
-            variants=variants
+            variants=variants,
         )
         foods.append(food)
 
@@ -365,9 +369,11 @@ async def generate_data(session: AsyncSession):
         category_foods = [food for food in foods if food.category_id == category.id]
 
         for food in category_foods:
-            food_ingredients = [position for position in pizza_positions if position['name'] == food.name][0]['ingredients']
+            food_ingredients = [position for position in pizza_positions if position["name"] == food.name][0][
+                "ingredients"
+            ]
             selected_ingredients: List[Ingredient] = []
-            
+
             for ingredient in ingredients:
                 if ingredient.name.lower() in food_ingredients:
                     selected_ingredients.append(ingredient)
