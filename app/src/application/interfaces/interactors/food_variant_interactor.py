@@ -81,10 +81,10 @@ class GetMenuCategoryPositionsIngredientsInteractor:
             ingredients = []
             for assoc in food.ingredient_associations or []:
                 ingredient = assoc.ingredient
-                
-                if not ingredient.is_available:
+
+                if not ingredient.is_available or not assoc.is_default:
                     continue
-                
+
                 ingredients.append(
                     IngredientItem(
                         id=ingredient.id,
