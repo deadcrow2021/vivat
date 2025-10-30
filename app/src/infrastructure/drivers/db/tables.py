@@ -149,6 +149,7 @@ class Restaurant(Base):
     name: Mapped[str] = mapped_column(String(500), nullable=False)
     phone: Mapped[str] = mapped_column(PhoneNumberType(region="RU"), unique=False)
     address: Mapped[str] = mapped_column(String(length=5000), nullable=False)
+    delivery_price: Mapped[Optional[int]] = mapped_column(Integer, nullable=False, default=0)
 
     latitude: Mapped[Optional[float]] = mapped_column(
         Numeric(9, 6), nullable=True

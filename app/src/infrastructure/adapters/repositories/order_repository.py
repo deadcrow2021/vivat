@@ -209,19 +209,19 @@ class OrderRepository(IOrderRepository):
 
         # 6. Предзагружаем все нужные ингредиенты
         ingredients_map = {}
-        all_ingredient_ids = all_adding_ids | all_remove_ids
+        all_added_removed_ingredient_ids = all_adding_ids | all_remove_ids
 
-        if all_ingredient_ids:
+        if all_added_removed_ingredient_ids:
             ingredients_stmt = (
                 select(Ingredient)
-                .filter(Ingredient.id.in_(all_ingredient_ids))
+                .filter(Ingredient.id.in_(all_added_removed_ingredient_ids))
             )
             ingredients_result = await self._session.execute(ingredients_stmt)
             for ingredient in ingredients_result.scalars():
                 ingredients_map[ingredient.id] = ingredient
 
         # Проверяем, что все ингредиенты существуют
-        missing_ingredients = all_ingredient_ids - set(ingredients_map.keys())
+        missing_ingredients = all_added_removed_ingredient_ids - set(ingredients_map.keys())
         if missing_ingredients:
             raise ValueError(f"Ингредиенты не найдены: {missing_ingredients}")
 
@@ -254,8 +254,8 @@ class OrderRepository(IOrderRepository):
                     ingredients_price += ceil(ingredients_map[adding_id].price * modifier) * addings_amount
 
             position_clear_price = food_variant_obj.price + ingredients_price
-            if position.price != food_variant_obj.price:
-                raise ValueError(f"Цена в запросе {position.price} не совпадает с ценой в БД {food_variant_obj.price}")
+            if position.price != position_clear_price:
+                raise ValueError(f"Цена в запросе {position.price} не совпадает с ценой блюда и ингредиентов из БД: {position_clear_price}")
 
             position_total_price = position_clear_price * position.quantity
 
