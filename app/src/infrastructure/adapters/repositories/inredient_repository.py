@@ -50,7 +50,4 @@ class IngredientRepository(IIngredientRepository):
         stmt_result = await self._session.execute(stmt)
         ingredients = stmt_result.scalars().all()
 
-        if not ingredients:
-            raise IngredientsNotFoundError
-
         return ingredients

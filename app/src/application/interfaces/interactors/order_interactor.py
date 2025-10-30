@@ -144,6 +144,7 @@ class AddOrderInteractor:
         await self._transaction_manager.commit()
 
         order: Order = order_data['order_obj']
+        delivery_price: int = order_data['delivery_price']
         unique_code = order.unique_code
         cook_start = order_request.cook_start
         comment = order_request.comment
@@ -196,8 +197,12 @@ class AddOrderInteractor:
                     )
                 msg += '\n\n' if (item['ingredients'] or ingredients['remove']) else ''
                 count += 1
+        
+        if delivery_price > 0 and action == OrderAction.DELIVERY:
+            msg += f'Цена доставки: {delivery_price} р.\n\n'
+            
 
-        msg += 'Общая сумма: ' + str(order_data['total_price']) + ' р.'
+        msg += 'Общая сумма: ' + str(order_data['total_price'] + delivery_price) + ' р.'
 
         await self._notifier.send_new_order(order.restaurant_id, order.id, msg, order.status.value, order.order_action)
 

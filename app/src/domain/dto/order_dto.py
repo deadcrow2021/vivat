@@ -110,7 +110,7 @@ class SelectedRestaurant(PhoneValidatorMixin, BaseModel):
     id: int
     action: OrderAction # проверить есть ли у этого ресторана такой action
     address: str = Field(..., max_length=5000)
-    phone: str 
+    phone: str
     # проверить адрес и телефон, сравнить с id ресторана
 
     @field_validator("address")

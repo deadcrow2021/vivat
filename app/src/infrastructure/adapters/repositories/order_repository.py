@@ -308,6 +308,7 @@ class OrderRepository(IOrderRepository):
 
         data = {
             'delivery_address': delivery_address.get_full_address() if address_id else None,
+            'delivery_price': restaurant.delivery_price,
             'total_price': total_price,
             'order': {},
             'order_obj': new_order

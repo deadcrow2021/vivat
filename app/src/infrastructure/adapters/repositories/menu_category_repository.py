@@ -166,10 +166,6 @@ class MenuCategoryRepository(IMunuCategoryRepository): # TODO: add exceptions
             )
             .where(MenuCategory.id == current_category.id)
             .where(FoodVariant.is_active == True)
-            .where(
-                FoodIngredientAssociation.ingredient.has(Ingredient.is_available == True),
-                FoodIngredientAssociation.is_default == True
-            )
             .where(disabled_alias.c.food_id.is_(None))  # Исключаем отключенные блюда
         )
 

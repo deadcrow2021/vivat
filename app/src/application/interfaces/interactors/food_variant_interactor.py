@@ -81,7 +81,10 @@ class GetMenuCategoryPositionsIngredientsInteractor:
             ingredients = []
             for assoc in food.ingredient_associations or []:
                 ingredient = assoc.ingredient
-                # append all ingredients
+                
+                if not ingredient.is_available:
+                    continue
+                
                 ingredients.append(
                     IngredientItem(
                         id=ingredient.id,
@@ -99,7 +102,7 @@ class GetMenuCategoryPositionsIngredientsInteractor:
                     description=food.description or "",
                     measure_name=food.measure_name or "",
                     size=sorted(size_info, key=lambda x: x.measure_value),
-                    ingredients=ingredients if ingredients else None
+                    ingredients=ingredients
                 )
             ) 
 
