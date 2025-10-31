@@ -17,8 +17,8 @@ services:
     container_name: backend
     restart: always
     working_dir: /server
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     depends_on:
       - db
     env_file:
@@ -34,25 +34,25 @@ services:
     build:
       context: /opt/vivat-frontend
     image: vivat-frontend
-    ports:
-        - '3000:3000'
+    # ports:
+    #     - '3000:3000'
     depends_on:
       - backend
-
+  
   nginx:
     image: nginx:latest
     container_name: nginx
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - vivat-frontend
       - backend
     volumes:
       - /opt/vivat/nginx/conf.d:/etc/nginx/conf.d:ro
       - /opt/vivat/nginx/logs:/var/log/nginx
-    networks:
-      - vivat-net
+      - /etc/ssl/vivat/:/etc/nginx/ssl:ro
 
 volumes:
   db-volume:
