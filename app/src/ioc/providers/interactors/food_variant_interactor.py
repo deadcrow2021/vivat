@@ -5,6 +5,7 @@ from src.application.interfaces.interactors.food_variant_interactor import GetFo
 from src.application.interfaces.repositories.food_variant_repository import IFoodVariantRepository
 from src.application.interfaces.repositories.menu_category_repository import IMunuCategoryRepository
 from src.application.interfaces.repositories.restaurant_repository import IRestaurantRepository
+from src.config import Config
 
 
 class FoodVariantInteractorProvider(Provider):
@@ -21,6 +22,7 @@ class FoodVariantInteractorProvider(Provider):
         self,
         food_variant_repository: IFoodVariantRepository,
         menu_category_repository: IMunuCategoryRepository,
-        restaurant_repository: IRestaurantRepository
+        restaurant_repository: IRestaurantRepository,
+        config: Config
     ) -> GetMenuCategoryPositionsIngredientsInteractor:
-        return GetMenuCategoryPositionsIngredientsInteractor(food_variant_repository, menu_category_repository, restaurant_repository)
+        return GetMenuCategoryPositionsIngredientsInteractor(food_variant_repository, menu_category_repository, restaurant_repository, config)

@@ -23,6 +23,7 @@ class AppConfig(BaseSettings):
     environment: str = Field(default=os.environ["ENVIRONMENT"])
     log_level: str = Field(default=os.environ["LOG_LEVEL"])
     domain: Optional[str] = Field(os.environ.get("DOMAIN"))
+    static_files_base_url: str = Field(default="")
 
     @field_validator("log_level")
     @classmethod
@@ -31,6 +32,22 @@ class AppConfig(BaseSettings):
         if not isinstance(level, int):
             raise ValueError(f"Invalid log level: {value}")
         return level
+
+    @property
+    def resolved_static_files_base_url(self) -> str:
+        """Динамически вычисляемый URL для статических файлов"""
+        # Если явно задан в .env - используем его
+        if self.static_files_base_url:
+            return self.static_files_base_url.rstrip('/')
+        
+        # Иначе вычисляем автоматически с учетом /api префикса
+        if self.environment == "production":
+            domain = f'https://{self.domain}'
+            # В production nginx обслуживает статику по /static (без /api)
+            return f"{domain}/static"
+        else:
+            # В development FastAPI обслуживает статику по /api/static
+            return f"http://localhost:{self.port}/api/static"
 
 
 class BotConfig(BaseSettings):

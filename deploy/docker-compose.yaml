@@ -53,6 +53,7 @@ services:
       - /opt/vivat/nginx/conf.d:/etc/nginx/conf.d:ro
       - /opt/vivat/nginx/logs:/var/log/nginx
       - /etc/ssl/vivat/:/etc/nginx/ssl:ro
+      - /opt/vivat/static:/opt/vivat/static:ro
 
 volumes:
   db-volume:

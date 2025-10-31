@@ -5,6 +5,7 @@ from src.infrastructure.drivers.db.tables import MenuCategory
 from src.domain.dto.food_variant_dto import FoodVariantResponse, PositionsResponse, PositionItem, SizeInfo, IngredientItem
 from src.application.exceptions import DatabaseException, IdNotValidError
 from src.application.interfaces.repositories import food_variant_repository, menu_category_repository, restaurant_repository
+from src.config import Config
 
 
 class GetFoodVariantInteractor:
@@ -34,11 +35,13 @@ class GetMenuCategoryPositionsIngredientsInteractor:
         self,
         food_variant_repository: food_variant_repository.IFoodVariantRepository,
         menu_category_repository: menu_category_repository.IMunuCategoryRepository,
-        restaurant_repository: restaurant_repository.IRestaurantRepository
+        restaurant_repository: restaurant_repository.IRestaurantRepository,
+        config: Config
     ):
         self._food_variant_repository = food_variant_repository
         self._menu_category_repository = menu_category_repository
         self._restaurant_repository = restaurant_repository
+        self._config = config
 
     async def __call__(self, category_id: int, restaurant_id: Optional[int]) -> PositionsResponse:
         if category_id < 1:
@@ -59,9 +62,7 @@ class GetMenuCategoryPositionsIngredientsInteractor:
             category_info = await self._menu_category_repository.get_menu_category_positions(category)
 
         if not category_info:
-            return PositionsResponse(
-            positions=[]
-        )
+            return PositionsResponse(positions=[])
 
         positions = []
         for food in category.foods:
@@ -85,27 +86,45 @@ class GetMenuCategoryPositionsIngredientsInteractor:
                 if not ingredient.is_available or not assoc.is_default:
                     continue
 
+                image_url = self._build_image_url(ingredient.image_url, "ingredients")
+
                 ingredients.append(
                     IngredientItem(
                         id=ingredient.id,
                         name=ingredient.name,
-                        image_url=ingredient.image_url or "",
+                        image_url=image_url,
                         price=ingredient.price
                     )
                 )
+
+            # Используем метод для построения URL для food изображений
+            food_image_url = self._build_image_url(food.image_url, "food")
 
             positions.append(
                 PositionItem(
                     id=food.id,
                     name=food.name,
-                    image_url=food.image_url or "",
+                    image_url=food_image_url,
                     description=food.description or "",
                     measure_name=food.measure_name or "",
                     size=sorted(size_info, key=lambda x: x.measure_value),
                     ingredients=ingredients
                 )
-            ) 
+            )
 
         return PositionsResponse(
             positions=positions if positions else None
         )
+
+    def _build_image_url(self, image_filename: str, image_type: str) -> str:
+        """Универсальный метод построения URL для изображений"""
+        if not image_filename:
+            return ""
+
+        # Всегда используем base_url из конфига
+        base_url = self._config.app.resolved_static_files_base_url.rstrip('/')
+
+        # Формируем полный URL
+        full_url = f"{base_url}/images/{image_type}/{image_filename}"
+
+        return full_url

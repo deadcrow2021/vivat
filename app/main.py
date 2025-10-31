@@ -1,9 +1,11 @@
 import asyncio
 from contextlib import asynccontextmanager
 import sys
+import os
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from dishka.integrations.fastapi import setup_dishka
 from dishka import AsyncContainer
@@ -28,6 +30,7 @@ from src.infrastructure.adapters.controllers import (
     order_controller,
     order_item_controller
 )
+from src.logger import logger
 
 
 def setup_routers(app: FastAPI) -> None:
@@ -58,6 +61,15 @@ def setup_middlewares(app: FastAPI, config: Config) -> None:
     app.middleware("http")(exception_middleware.exception_middleware) # затем 2-й - перехватывает все ошибки
 
 
+def setup_static_files(app: FastAPI) -> None:
+    """Настройка обслуживания статических файлов"""
+    # Создаем директории для изображений
+    os.makedirs("static/images/food", exist_ok=True)
+    os.makedirs("static/images/ingredients", exist_ok=True)
+
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
 async def start_telegram_bot(container: AsyncContainer):
     """Запускает Telegram бота в фоновом режиме"""
     try:
@@ -70,7 +82,7 @@ async def start_telegram_bot(container: AsyncContainer):
         while True:
             await asyncio.sleep(3600)  # Спим 1 час
     except Exception as e:
-        print(f"Error starting Telegram bot: {e}")
+        logger.error(f"Error starting Telegram bot: {e}")
     finally:
         if 'telegram_app' in locals():
             await telegram_app.updater.stop()
@@ -106,6 +118,7 @@ def create_application() -> FastAPI:
     app.state.dishka_container = container
     setup_dishka(container, app)
     setup_middlewares(app, config)
+    setup_static_files(app)
     register_exception_handlers(app)
     setup_routers(app)
 
