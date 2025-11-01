@@ -1,5 +1,6 @@
 from dishka import provide, Provider, Scope
 
+from src.config import Config
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.interactors.ingredient_interactor import GetAllIngredientsInteractor, GetMenuCategoryIngredientsInteractor
 from src.application.interfaces.repositories.ingredient_repository import IIngredientRepository
@@ -16,6 +17,7 @@ class IngredientInteractorProvider(Provider):
     @provide(scope=Scope.REQUEST)
     async def get_all_default_category_ingredients_interactor(
         self,
-        ingredient_repository: IIngredientRepository
+        ingredient_repository: IIngredientRepository,
+        config: Config
     ) -> GetMenuCategoryIngredientsInteractor:
-        return GetMenuCategoryIngredientsInteractor(ingredient_repository)
+        return GetMenuCategoryIngredientsInteractor(ingredient_repository, config)
