@@ -3,7 +3,7 @@ from sqlalchemy import select, or_, update
 from sqlalchemy.orm import selectinload, contains_eager
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.dto.order_dto import OrderAction
+from src.domain.enums.enums import OrderAction
 from src.infrastructure.exceptions import UserAddressNotFoundError
 from src.domain.dto.user_address_dto import AddUserAddressRequest, DeleteAddressResponse, UpdateUserAddressRequest
 from src.application.interfaces.repositories.user_address_repository import IUserAddressRepository

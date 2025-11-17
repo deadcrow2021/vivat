@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from src.domain.dto.order_dto import OrderStatus
+from src.domain.enums.enums import OrderStatus
 from src.application.interfaces.repositories.order_repository import IOrderRepository
 from src.application.interfaces.repositories.chat_repository import IChatRepository
 from src.application.interfaces.notification.notifier import INotifier

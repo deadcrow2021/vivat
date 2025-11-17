@@ -3,9 +3,10 @@ from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Request
 from starlette import status
 
+from src.domain.enums.enums import OrderStatus
 from src.application.interfaces.interactors.auth_interactor import GetCurrentUserInteractor
 from src.application.interfaces.interactors.order_interactor import AddOrderInteractor, GetUserOrdersInteractor#, UpdateOrderStatusInteractor
-from src.domain.dto.order_dto import GetOrderResponse, OrderRequest, CreateOrderResponse, OrderStatus
+from src.domain.dto.order_dto import GetOrderResponse, OrderRequest, CreateOrderResponse
 
 
 router = APIRouter(prefix="/order", tags=["Order"])

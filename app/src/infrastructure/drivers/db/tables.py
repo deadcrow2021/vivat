@@ -20,7 +20,8 @@ from sqlalchemy_utils import PhoneNumberType, EmailType
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, InvalidHashError
 
-from src.domain.dto.order_dto import OrderAction, OrderStatus
+from src.domain.enums.enums import OrderAction
+from src.domain.enums.enums import OrderStatus
 from src.infrastructure.drivers.db.base import Base
 from src.config import ArgonConfig
 

@@ -81,6 +81,7 @@ class TelegramProvider(Provider):
 
         return application
 
+
     def _create_ban_handler(self):
         """Создает обработчик для команды /ban"""
         async def ban_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -91,8 +92,9 @@ class TelegramProvider(Provider):
             async with container() as request_container:
                 handler: BotHandlerInteractor = await request_container.get(BotHandlerInteractor)
                 await handler.handle_ban_command(update, context)
-        
+
         return ban_handler
+
 
     def _create_chat_id_handler(self):
         """Создает обработчик для команды /get_chat_id"""
@@ -101,7 +103,7 @@ class TelegramProvider(Provider):
             chat_id = chat.id
             chat_title = chat.title if chat.title else "личный чат"
             chat_type = chat.type
-            
+
             message = (
                 f"📋 Информация о чате:\n"
                 f"🆔 ID чата: <code>{chat_id}</code>\n"
@@ -109,9 +111,9 @@ class TelegramProvider(Provider):
                 f"🔰 Тип: {chat_type}\n\n"
                 f"💡 Этот ID можно использовать для настройки уведомлений о заказах"
             )
-            
+
             await update.message.reply_text(message, parse_mode='HTML')
-        
+
         return chat_id_handler
 
 
@@ -120,10 +122,10 @@ class TelegramProvider(Provider):
         async def order_callback_handler(update, context):
             # Получаем контейнер из данных бота
             container = context.bot_data['container']
-            
+
             # Создаем новый контекст запроса для обработки callback
             async with container() as request_container:
-                handler = await request_container.get(BotHandlerInteractor)
+                handler: BotHandlerInteractor = await request_container.get(BotHandlerInteractor)
                 await handler.handle_order_callback(update, context)
 
         return order_callback_handler

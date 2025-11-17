@@ -1,8 +1,8 @@
 from dishka import provide, Provider, Scope
 
+from src.application.interfaces.notification.http_notifier import IHTTPOrderNotifier
 from src.application.interfaces.interactors.order_interactor import AddOrderInteractor, GetUserOrdersInteractor#, UpdateOrderStatusInteractor
 from src.application.interfaces.transaction_manager import ITransactionManager
-from src.application.interfaces.notification.notifier import INotifier
 from src.application.interfaces.repositories.order_repository import IOrderRepository
 from src.application.interfaces.repositories.user_address_repository import IUserAddressRepository
 from src.application.interfaces.repositories.users_repository import IUsersRepository
@@ -24,7 +24,7 @@ class OrderInteractorProvider(Provider):
         user_repository: IUsersRepository,
         user_address_repository: IUserAddressRepository,
         transaction_manager: ITransactionManager,
-        notifier: INotifier,
+        notifier: IHTTPOrderNotifier,
     ) -> AddOrderInteractor:
         return AddOrderInteractor(
             order_repository,

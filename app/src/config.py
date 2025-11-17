@@ -52,6 +52,22 @@ class AppConfig(BaseSettings):
 
 class BotConfig(BaseSettings):
     bot_api_key: str
+    domain: Optional[str] = Field(os.environ.get("DOMAIN"))
+    environment: str = Field(default=os.environ["ENVIRONMENT"])
+    bot_host: str = Field(default=os.environ["BOT_HOST"])
+    bot_port: int = Field(default=int(os.environ["BOT_PORT"]))
+
+    @property
+    def get_bot_app_url(self) -> str:
+        """Динамически вычисляемый URL для сервиса с ботом"""        
+        # Вычисляем автоматически с учетом /bot префикса
+        if self.environment == "production":
+            url = f'https://{self.domain}'
+        else:
+            # В development FastAPI обслуживает статику по /api/static
+            url = f"http://{self.bot_host}:{self.bot_port}"
+
+        return url
 
 
 class CORSConfig(BaseSettings):

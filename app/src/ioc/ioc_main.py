@@ -35,6 +35,7 @@ from src.ioc.providers.interactors import (
 from src.ioc.providers.database import DatabaseProvider
 from src.ioc.providers.config import ConfigProvider
 from src.ioc.providers.telegram import TelegramProvider
+from src.ioc.providers.http_provider import HTTPProvider
 
 
 def create_container() -> AsyncContainer:
@@ -72,5 +73,6 @@ def create_container() -> AsyncContainer:
         chat_repository.ChatRepositryProvider(),
         # Others
         ConfigProvider(),
+        HTTPProvider(),
         TelegramProvider(),
     )

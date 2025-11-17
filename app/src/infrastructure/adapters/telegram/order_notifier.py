@@ -2,7 +2,7 @@ from typing import List
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.error import BadRequest
 
-from src.domain.dto.order_dto import OrderAction
+from src.domain.enums.enums import OrderAction
 from src.application.interfaces.notification.notifier import INotifier
 from src.application.interfaces.repositories.restaurant_repository import IRestaurantRepository
 
@@ -30,7 +30,7 @@ class TelegramOrderNotifier(INotifier):
         if not chats:
             return
 
-        keyboard = self.build_keyboard(current_status, order_id, action)
+        keyboard = self._build_keyboard(current_status, order_id, action)
         full_text = f"{message_text}\n\nСтатус: {self._get_status_display(current_status)}"
 
         for chat in chats:
@@ -56,9 +56,9 @@ class TelegramOrderNotifier(INotifier):
     ) -> None:
         """Обновляет сообщение с заказом после изменения статуса"""
         try:
-            keyboard = self.build_keyboard(current_status, order_id, action)
+            keyboard = self._build_keyboard(current_status, order_id, action)
             full_text = f"{message_text}\n\nСтатус: {self._get_status_display(current_status)}"
-            
+
             await self._bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=message_id,
@@ -71,7 +71,7 @@ class TelegramOrderNotifier(INotifier):
             print(f"Error updating message: {e}")
 
 
-    def build_keyboard(
+    def _build_keyboard(
         self,
         status: str,
         order_id: int,

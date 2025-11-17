@@ -8,8 +8,9 @@ from sqlalchemy import Tuple, and_, exists, select, or_
 from sqlalchemy.orm import selectinload, contains_eager, aliased
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.domain.enums.enums import OrderAction, OrderStatus
 from src.infrastructure.exceptions import OrderNotFoundError, RestaurantNotFoundError
-from src.domain.dto.order_dto import OrderRequest, OrderAction, OrderStatus
+from src.domain.dto.order_dto import OrderRequest
 from src.application.interfaces.repositories.order_repository import IOrderRepository
 from src.infrastructure.drivers.db.tables import (
     Food,

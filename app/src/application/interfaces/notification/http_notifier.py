@@ -4,9 +4,9 @@ from typing import Protocol
 from src.domain.enums.enums import OrderAction
 
 
-class INotifier(Protocol):
+class IHTTPOrderNotifier(Protocol):
     @abstractmethod
-    async def send_new_order(
+    async def send_order_info_to_bot(
         self,
         restaurant_id: int,
         order_id: int,

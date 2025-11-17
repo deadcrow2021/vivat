@@ -1,13 +1,14 @@
 from math import ceil
 
+from src.domain.enums.enums import OrderAction
 from src.infrastructure.drivers.db.tables import Order
 from src.infrastructure.exceptions import UserNotFoundError
 from src.application.exceptions import IdNotValidError
 from src.domain.dto.auth_dto import CurrentUserDTO
-from src.domain.dto.order_dto import OrderAction, GetOrderResponse, IngredientModel, OrderItemModel, OrderModel, OrderRequest, CreateOrderResponse, OrderStatus
+from src.domain.dto.order_dto import GetOrderResponse, IngredientModel, OrderItemModel, OrderModel, OrderRequest, CreateOrderResponse
 from src.application.interfaces.transaction_manager import ITransactionManager
 from src.application.interfaces.repositories import order_repository, user_address_repository, users_repository
-from src.application.interfaces.notification.notifier import INotifier
+from src.application.interfaces.notification.http_notifier import IHTTPOrderNotifier
 from src.logger import logger
 
 
@@ -118,7 +119,7 @@ class AddOrderInteractor:
         user_repository: users_repository.IUsersRepository,
         user_address_repository: user_address_repository.IUserAddressRepository,
         transaction_manager: ITransactionManager,
-        notifier: INotifier
+        notifier: IHTTPOrderNotifier
     ):
         self._order_repository = order_repository
         self._user_repository = user_repository
@@ -200,11 +201,16 @@ class AddOrderInteractor:
         
         if delivery_price > 0 and action == OrderAction.DELIVERY:
             msg += f'Цена доставки: {delivery_price} р.\n\n'
-            
 
         msg += 'Общая сумма: ' + str(order_data['total_price'] + delivery_price) + ' р.'
 
-        await self._notifier.send_new_order(order.restaurant_id, order.id, msg, order.status.value, order.order_action)
+        await self._notifier.send_order_info_to_bot(
+            order.restaurant_id,
+            order.id,
+            msg,
+            order.status.value,
+            order.order_action
+        )
 
         return CreateOrderResponse(
             id=order.id,

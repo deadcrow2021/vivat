@@ -1,27 +1,12 @@
 from datetime import datetime
-from enum import Enum
 import re
 from typing import Dict, List, Optional, TypedDict
 
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, field_validator
 
+from src.domain.enums.enums import OrderAction, OrderStatus
 from src.domain.mixins.phone_validator import PhoneValidatorMixin
-
-
-class OrderAction(Enum):
-    UNKNOWN = "unknown"
-    DELIVERY = "delivery"
-    TAKEAWAY = "takeaway"
-    INSIDE = "inside"
-
-class OrderStatus(Enum):
-    CREATED = "created"
-    IN_PROGRESS = "in_progress"
-    IN_DELIVERY = "in_delivery"
-    COOKED = "cooked"
-    DONE = "done"
-    CANCELLED = "cancelled"
 
 
 class IngredientModel(BaseModel):

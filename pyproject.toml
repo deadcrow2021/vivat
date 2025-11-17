@@ -23,7 +23,8 @@ dependencies = [
     "passlib[bcrypt] (>=1.7.4,<2.0.0)",
     "python-multipart (>=0.0.20,<0.0.21)",
     "argon2-cffi (>=25.1.0,<26.0.0)",
-    "python-telegram-bot (>=22.5,<23.0)"
+    "python-telegram-bot (>=22.5,<23.0)",
+    "aiohttp (>=3.13.2,<4.0.0)"
 ]
 
 

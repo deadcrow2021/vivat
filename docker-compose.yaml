@@ -29,7 +29,26 @@ services:
     command: >
       sh -c "cd /server &&
       alembic upgrade head &&
-      gunicorn main:create_application --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
+      gunicorn main:create_application --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
+
+  telegram-bot:
+    build:
+      context: .
+    container_name: telegram-bot
+    restart: always
+    working_dir: /server
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db
+      - backend
+    env_file:
+      - .env
+    volumes:
+      - ./app/:/server
+    command: >
+      sh -c "cd /server &&
+      gunicorn telegram_bot_main:create_application --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8001"
 
 volumes:
   db-volume:
